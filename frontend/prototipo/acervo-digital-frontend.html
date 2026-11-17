@@ -1,0 +1,2432 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acervo Digital | Biblioteca digital para leitores e bibliotecários</title>
+  
+  <!-- Basecoat CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css">
+  
+  <!-- Shell CSS -->
+  <style>
+/* Skip artifact shell: fixed styles served beside every artifact.
+   Complements basecoat; artifacts override --accent for their own identity. */
+:root {
+  color-scheme: light dark;
+  --accent: #2563eb;
+  --accent-contrast: #ffffff;
+  --accent-text: color-mix(in srgb, var(--accent) 72%, #000);
+  --bg: #f8f9fb;
+  --surface: #ffffff;
+  --text: #14171f;
+  --text-muted: #5b6472;
+  --border: rgba(20, 23, 31, 0.10);
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(20, 23, 31, 0.08);
+  --space: 16px;
+}
+/* Theme resolution. Without data-theme the viewer's system preference decides,
+   as it always did. With it, the artifact's own choice wins in BOTH directions:
+   a page that hardcodes one palette must not be handed the opposite set of
+   tokens by the machine it happens to be opened on. The dark values appear
+   twice because a media query cannot be folded into a selector list.
+   The attribute sits inside :where() so these blocks keep the specificity of a
+   bare :root, the page's own <style> is linked after this file and must go on
+   overriding any token it wants, exactly as it could before. */
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --accent-text: color-mix(in srgb, var(--accent) 78%, #fff);
+    --bg: #101318;
+    --surface: #181c23;
+    --text: #eef1f6;
+    --text-muted: #9aa4b2;
+    --border: rgba(238, 241, 246, 0.12);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+}
+:root:where([data-theme="dark"]) {
+  color-scheme: dark;
+  --accent-text: color-mix(in srgb, var(--accent) 78%, #fff);
+  --bg: #101318;
+  --surface: #181c23;
+  --text: #eef1f6;
+  --text-muted: #9aa4b2;
+  --border: rgba(238, 241, 246, 0.12);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+:root:where([data-theme="light"]) { color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+
+.shell-container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+.shell-section { padding: calc(var(--space) * 2) 0; }
+.shell-grid { display: grid; gap: var(--space); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.shell-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: var(--space); }
+.shell-footer { padding: 24px 0 40px; color: var(--text-muted); font-size: 13px; }
+
+.shell-hero { padding: calc(var(--space) * 3) 0 calc(var(--space) * 2); }
+.shell-hero h1 { font-size: clamp(26px, 4vw, 40px); line-height: 1.15; margin: 0 0 10px; text-wrap: balance; }
+.shell-hero p { color: var(--text-muted); max-width: 60ch; margin: 0; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space);
+}
+
+.kpi { display: flex; flex-direction: column; gap: 4px; }
+.kpi .kpi-value { font-size: 28px; font-weight: 650; line-height: 1.1; }
+.kpi .kpi-label { font-size: 13px; color: var(--text-muted); }
+.kpi .kpi-delta { font-size: 12.5px; font-weight: 600; }
+.kpi .kpi-delta.up { color: #0a8f3c; }
+.kpi .kpi-delta.down { color: #cf3131; }
+
+table.shell-table { border-collapse: collapse; width: 100%; font-size: 14px; }
+table.shell-table th {
+  text-align: left; font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--text-muted); font-weight: 600;
+}
+table.shell-table th, table.shell-table td { padding: 9px 12px 9px 0; border-bottom: 1px solid var(--border); }
+table.shell-table td.num, table.shell-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+
+.chart-box { width: 100%; min-height: 220px; }
+.chart-box svg { width: 100%; height: auto; display: block; }
+
+.muted { color: var(--text-muted); }
+.accent { color: var(--accent-text); }
+.shell-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent-text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shell-fade { animation: shell-fade 400ms ease both; }
+  @keyframes shell-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+
+</style>
+  
+  <!-- Google Fonts: Inter & IBM Plex Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --accent: #2563EB;
+      --accent-hover: #1D4ED8;
+      --accent-soft: #EFF6FF;
+      --accent-text: #1D4ED8;
+      --accent-contrast: #FFFFFF;
+      --bg: #FFFFFF;
+      --surface: #FFFFFF;
+      --muted: #F4F4F5;
+      --muted-foreground: #71717A;
+      --border: #E4E4E7;
+      --foreground: #18181B;
+      --success: #16A34A;
+      --success-soft: #F0FDF4;
+      --success-text: #15803D;
+      --warning: #D97706;
+      --warning-soft: #FFFBEB;
+      --warning-text: #B45309;
+      --destructive: #DC2626;
+      --destructive-soft: #FEF2F2;
+      --destructive-text: #B91C1C;
+      --radius: 8px;
+      --font-mono: 'IBM Plex Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #F8FAFC;
+      color: var(--foreground);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .font-mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--foreground);
+    }
+
+    .brand-square {
+      width: 28px;
+      height: 28px;
+      background-color: var(--accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: -0.01em;
+      color: var(--foreground);
+    }
+
+    .brand-tag {
+      font-size: 11px;
+      background: var(--muted);
+      color: var(--muted-foreground);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    /* BADGES */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+
+    .badge-disponivel {
+      background-color: var(--success-soft);
+      color: var(--success-text);
+      border: 1px solid #BBF7D0;
+    }
+
+    .badge-emprestado {
+      background-color: var(--muted);
+      color: var(--muted-foreground);
+      border: 1px solid var(--border);
+    }
+
+    .badge-reservado {
+      background-color: var(--warning-soft);
+      color: var(--warning-text);
+      border: 1px solid #FDE68A;
+    }
+
+    .badge-atrasado {
+      background-color: var(--destructive-soft);
+      color: var(--destructive-text);
+      border: 1px solid #FECACA;
+    }
+
+    /* COMMON COMPONENTS */
+    .btn-minimal {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      color: var(--foreground);
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn-minimal:hover {
+      background: var(--muted);
+    }
+
+    .btn-primary-solid {
+      background: var(--accent);
+      color: #FFFFFF;
+      border-color: var(--accent);
+    }
+
+    .btn-primary-solid:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      color: #FFFFFF;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border-color: transparent;
+      color: var(--muted-foreground);
+    }
+
+    .btn-ghost:hover {
+      background: var(--muted);
+      color: var(--foreground);
+    }
+
+    .btn-destructive-ghost {
+      background: transparent;
+      border-color: transparent;
+      color: var(--destructive);
+    }
+
+    .btn-destructive-ghost:hover {
+      background: var(--destructive-soft);
+      color: var(--destructive-text);
+    }
+
+    .input-minimal {
+      width: 100%;
+      height: 36px;
+      padding: 0 12px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #FFFFFF;
+      color: var(--foreground);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .input-minimal:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-soft);
+    }
+
+    .input-search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-search-wrap svg {
+      position: absolute;
+      left: 10px;
+      color: var(--muted-foreground);
+      pointer-events: none;
+    }
+
+    .input-search-wrap input {
+      padding-left: 32px;
+    }
+
+    .screen-fade {
+      animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* TOAST */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast-msg {
+      background: #18181B;
+      color: #FFFFFF;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideUp 0.25s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Table styles */
+    .saas-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+
+    .saas-table th {
+      text-align: left;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: #FAFAFA;
+      font-size: 12px;
+    }
+
+    .saas-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--foreground);
+    }
+
+    .saas-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .saas-table tr:hover td {
+      background: #FAFAFA;
+    }
+
+    .card-flat {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .cover-box {
+      background: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted-foreground);
+      font-weight: 600;
+      font-size: 13px;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    /* CSS Bar chart */
+    .css-bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      height: 120px;
+      padding-top: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .css-bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .css-bar-fill {
+      width: 100%;
+      max-width: 32px;
+      background: var(--accent);
+      border-radius: 4px 4px 0 0;
+      transition: height 0.4s ease;
+    }
+
+    .css-bar-col:hover .css-bar-fill {
+      background: var(--accent-hover);
+    }
+
+    .css-bar-label {
+      font-size: 10px;
+      color: var(--muted-foreground);
+      font-family: var(--font-mono);
+    }
+
+    /* ============================================================
+       ADAPTAÇÃO AO PROMPT: SPA responsiva (desktop e tablet)
+       Os tokens e componentes acima são os mesmos do protótipo.
+    ============================================================ */
+    :root { --muted-strong: #52525B; --info-border: #BFDBFE; }
+    html { scroll-behavior: smooth; }
+    body { font-size: 14px; }
+    button, input, select, textarea { font-family: inherit; }
+    a { color: var(--accent-text); }
+    a:not([class]) { text-decoration: underline; text-underline-offset: 2px; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .input-minimal:focus-visible { outline: none; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .skip-link { position: absolute; left: 8px; top: -48px; background: var(--accent); color: #fff; padding: 8px 14px; border-radius: 6px; z-index: 5000; font-size: 13px; text-decoration: none; }
+    .skip-link:focus { top: 8px; }
+    button:disabled, .btn-minimal:disabled { opacity: 0.5; cursor: not-allowed; }
+    .hidden { display: none !important; }
+    .muted { color: var(--muted-foreground); }
+    .nowrap { white-space: nowrap; }
+    .text-right { text-align: right; }
+
+    /* App shell */
+    #app { flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .app-shell { display: flex; flex: 1; width: 100%; min-height: 100vh; }
+    .app-sidebar { width: 240px; flex-shrink: 0; background: var(--muted); border-right: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; justify-content: space-between; position: sticky; top: 0; height: 100vh; overflow-y: auto; z-index: 60; }
+    .sidebar-brand { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 0 4px; text-decoration: none; color: var(--foreground); }
+    .sidebar-brand .brand-title { font-weight: 700; font-size: 14px; }
+    .sidebar-menu { display: flex; flex-direction: column; gap: 2px; }
+    .sidebar-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; color: var(--muted-strong); padding: 14px 12px 4px; }
+    .sidebar-btn { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--foreground); background: transparent; border: none; cursor: pointer; text-align: left; transition: all 0.15s ease; text-decoration: none; position: relative; width: 100%; }
+    .sidebar-btn:hover { background: #E4E4E7; }
+    .sidebar-btn.active { background: #FFFFFF; color: var(--accent-text); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
+    .sidebar-btn .nav-count { margin-left: auto; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; background: var(--destructive); color: #fff; padding: 1px 6px; border-radius: 999px; }
+    .sidebar-footer { padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+    .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: #CBD5E1; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; color: var(--foreground); }
+    .main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #FFFFFF; }
+    .topbar { height: 56px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; padding: 0 24px; background: #FFFFFF; position: sticky; top: 0; z-index: 50; }
+    .topbar-search { flex: 1; max-width: 440px; }
+    .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .icon-btn { position: relative; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent; background: transparent; border-radius: 6px; cursor: pointer; color: var(--muted-strong); transition: all 0.15s ease; }
+    .icon-btn:hover { background: var(--muted); color: var(--foreground); }
+    .icon-btn.sm { width: 30px; height: 30px; }
+    .icon-btn.danger:hover { background: var(--destructive-soft); color: var(--destructive-text); }
+    .icon-btn .dot-count { position: absolute; top: 3px; right: 2px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: var(--destructive); color: #fff; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); }
+    .menu-toggle { display: none; }
+    .user-chip { display: flex; align-items: center; gap: 8px; padding: 3px 8px 3px 3px; border: 1px solid var(--border); border-radius: 999px; background: #fff; cursor: pointer; font-size: 12px; }
+    .user-chip:hover { background: var(--muted); }
+    .user-chip .who { line-height: 1.2; text-align: left; }
+    .user-chip .who b { display: block; font-weight: 600; font-size: 12px; }
+    .user-chip .who span { color: var(--muted-foreground); font-size: 11px; }
+    .menu-pop { position: absolute; right: 24px; top: 52px; width: 252px; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.18); padding: 6px; z-index: 70; animation: fadeIn 0.15s ease; }
+    .menu-pop .menu-head { padding: 8px 10px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+    .menu-pop .menu-head b { display: block; font-size: 13px; }
+    .menu-pop .menu-head span { font-size: 11.5px; color: var(--muted-foreground); }
+    .menu-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: none; background: transparent; border-radius: 6px; font-size: 13px; cursor: pointer; text-align: left; color: var(--foreground); }
+    .menu-item:hover { background: var(--muted); }
+    .content { flex: 1; padding: 24px 28px 48px; width: 100%; max-width: 1320px; margin: 0 auto; outline: none; }
+    .sidebar-scrim { display: none; }
+
+    /* Cabeçalho de página */
+    .page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .page-title { font-size: 20px; font-weight: 700; line-height: 1.3; }
+    .page-sub { font-size: 13px; color: var(--muted-foreground); margin-top: 2px; }
+    .page-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .crumbs { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted-foreground); margin-bottom: 12px; flex-wrap: wrap; }
+    .crumbs a { color: var(--muted-foreground); text-decoration: none; }
+    .crumbs a:hover { color: var(--accent-text); text-decoration: underline; }
+    .section-title { font-size: 14px; font-weight: 700; }
+    .eyebrow { font-size: 11px; color: var(--muted-foreground); text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em; }
+
+    /* Grades */
+    .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    @media (min-width: 1280px) { .grid-kpi.k5 { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+    .grid-books { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-main-side { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 20px; }
+    .stack { display: flex; flex-direction: column; gap: 16px; }
+    .row { display: flex; align-items: center; gap: 8px; }
+    .row.between { justify-content: space-between; }
+    .row.wrap { flex-wrap: wrap; }
+    .grow { flex: 1; min-width: 0; }
+
+    /* Cards */
+    .kpi-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: block; text-align: left; text-decoration: none; color: inherit; width: 100%; font: inherit; }
+    .kpi-card .kpi-label { font-size: 12px; color: var(--muted-foreground); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .kpi-card .kpi-value { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 700; margin-top: 4px; }
+    .kpi-card .kpi-hint { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
+    .kpi-card.danger { border-left: 3px solid var(--destructive); }
+    .kpi-card.danger .kpi-value { color: var(--destructive); }
+    .kpi-card.warn { border-left: 3px solid var(--warning); }
+    .kpi-card.ok { border-left: 3px solid var(--success); }
+    button.kpi-card, a.kpi-card { cursor: pointer; transition: all 0.15s ease; }
+    button.kpi-card:hover, a.kpi-card:hover { border-color: var(--info-border); background: #FAFCFF; }
+    .card-flat.flush { padding: 0; overflow: hidden; }
+    .card-head { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .card-foot { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 12px; gap: 8px; flex-wrap: wrap; }
+    .shortcut { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; text-align: left; width: 100%; transition: all 0.15s ease; font-size: 13px; }
+    .shortcut:hover { border-color: var(--info-border); background: #FAFCFF; }
+    .shortcut .sc-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .shortcut b { display: block; font-weight: 600; font-size: 13px; color: var(--foreground); }
+    .shortcut > .grow { color: inherit; font-size: inherit; }
+    .shortcut span { color: var(--muted-foreground); font-size: 12px; }
+    .badge-info { background: var(--accent-soft); color: var(--accent-text); border: 1px solid var(--info-border); }
+    .status-badge.lg { font-size: 12px; padding: 4px 10px; }
+    .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--muted); color: var(--muted-strong); border: 1px solid var(--border); font-weight: 500; }
+
+    /* Capas */
+    .cover-box { position: relative; overflow: hidden; box-shadow: inset 4px 0 0 rgba(0, 0, 0, 0.05); }
+    .cover-box img { width: 100%; height: 100%; object-fit: cover; }
+    .cover-sm { width: 40px; height: 54px; font-size: 13px; }
+    .cover-md { width: 56px; height: 76px; font-size: 16px; }
+    .cover-lg { width: 100%; aspect-ratio: 3 / 4; max-height: 360px; font-size: 44px; border-radius: 8px; }
+
+    /* Alertas */
+    .callout { display: flex; gap: 10px; align-items: flex-start; padding: 10px 14px; border-radius: 8px; border: 1px solid; font-size: 13px; line-height: 1.45; }
+    .callout svg { flex-shrink: 0; margin-top: 2px; }
+    .callout b { font-weight: 600; }
+    .callout-success { background: var(--success-soft); color: var(--success-text); border-color: #BBF7D0; }
+    .callout-error { background: var(--destructive-soft); color: var(--destructive-text); border-color: #FECACA; }
+    .callout-warning { background: var(--warning-soft); color: var(--warning-text); border-color: #FDE68A; }
+    .callout-info { background: var(--accent-soft); color: var(--accent-text); border-color: var(--info-border); }
+    .callout .callout-body { flex: 1; min-width: 0; }
+    .callout .callout-action { margin-left: auto; flex-shrink: 0; }
+
+    /* Formulários */
+    .form-field { display: flex; flex-direction: column; gap: 4px; }
+    .form-field > label, .form-field .lbl { font-size: 12px; font-weight: 500; }
+    .form-field .hint { font-size: 11.5px; color: var(--muted-foreground); }
+    .form-field .error-msg { font-size: 11.5px; color: var(--destructive-text); display: none; align-items: center; gap: 4px; }
+    .form-field.has-error .error-msg { display: flex; }
+    .form-field.has-error .input-minimal { border-color: var(--destructive); }
+    .form-field.has-error .input-minimal:focus { box-shadow: 0 0 0 2px var(--destructive-soft); }
+    .req { color: var(--destructive); }
+    select.input-minimal { appearance: auto; padding-right: 8px; background: #fff; }
+    textarea.input-minimal { height: auto; min-height: 92px; padding: 8px 12px; resize: vertical; line-height: 1.5; }
+    .pw-wrap { position: relative; }
+    .pw-wrap .input-minimal { padding-right: 40px; }
+    .pw-wrap .icon-btn { position: absolute; right: 2px; top: 3px; width: 30px; height: 30px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .form-grid .span-2 { grid-column: 1 / -1; }
+    .form-actions { display: flex; gap: 8px; justify-content: flex-end; padding-top: 16px; margin-top: 8px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+    .btn-lg { height: 40px; padding: 0 18px; }
+    .btn-block { width: 100%; }
+    .btn-danger-solid { background: var(--destructive); color: #fff; border-color: var(--destructive); }
+    .btn-danger-solid:hover { background: var(--destructive-text); border-color: var(--destructive-text); color: #fff; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .checklist { list-style: none; display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: var(--muted-foreground); margin-top: 2px; }
+    .checklist li { display: flex; align-items: center; gap: 6px; }
+    .checklist li.ok { color: var(--success-text); }
+    .upload-drop { border: 1px dashed #A1A1AA; border-radius: 8px; padding: 16px; display: flex; gap: 14px; align-items: center; background: #FAFAFA; }
+
+    /* Filtros e abas */
+    .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .filter-bar .form-field { min-width: 140px; }
+    .filter-bar .form-field.search { flex: 1; min-width: 220px; }
+    .segmented { display: inline-flex; background: var(--muted); padding: 3px; border-radius: 8px; gap: 2px; max-width: 100%; overflow-x: auto; }
+    .segmented button { border: none; background: transparent; padding: 6px 12px; font-size: 13px; font-weight: 500; color: var(--muted-strong); border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; transition: all 0.15s ease; }
+    .segmented button:hover { color: var(--foreground); }
+    .segmented button.active { background: #FFFFFF; color: var(--foreground); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06); }
+    .segmented .count { font-family: var(--font-mono); font-size: 10.5px; background: var(--border); padding: 0 6px; border-radius: 999px; }
+    .pager { display: flex; align-items: center; gap: 4px; }
+    .pager button.active { background: var(--accent-soft); color: var(--accent-text); border-color: var(--info-border); font-weight: 600; }
+
+    /* Estrelas, medidores */
+    .stars { display: inline-flex; gap: 1px; color: var(--warning); vertical-align: middle; }
+    .star-input { display: inline-flex; gap: 4px; }
+    .star-input button { border: 1px solid var(--border); background: #fff; border-radius: 8px; width: 44px; height: 44px; cursor: pointer; color: #A1A1AA; display: flex; align-items: center; justify-content: center; transition: all 0.12s ease; }
+    .star-input button.on { color: var(--warning); border-color: #FDE68A; background: var(--warning-soft); }
+    .star-input button:hover { border-color: var(--warning); }
+    .meter { height: 6px; background: var(--muted); border-radius: 999px; overflow: hidden; }
+    .meter > span { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+    .meter.ok > span { background: var(--success); }
+    .meter.warn > span { background: var(--warning); }
+    .meter.bad > span { background: var(--destructive); }
+    .dist-row { display: grid; grid-template-columns: 28px 1fr 28px; gap: 8px; align-items: center; font-size: 11.5px; color: var(--muted-foreground); }
+
+    /* Tabelas */
+    .table-wrap { overflow-x: auto; }
+    .saas-table th { white-space: nowrap; }
+    .saas-table td.act { text-align: right; white-space: nowrap; }
+    .row-danger td { background: #FFFAFA; }
+    .row-danger td:first-child { box-shadow: inset 3px 0 0 var(--destructive); }
+    .row-warn td:first-child { box-shadow: inset 3px 0 0 var(--warning); }
+    .cell-book { display: flex; align-items: center; gap: 10px; min-width: 180px; }
+    .cell-sub { font-size: 11.5px; color: var(--muted-foreground); }
+
+    /* Cartões de livro */
+    .book-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+    .book-card:hover { border-color: var(--info-border); box-shadow: 0 4px 12px -6px rgba(37, 99, 235, 0.25); }
+    .book-card h3 { font-size: 13.5px; font-weight: 600; line-height: 1.3; margin-bottom: 2px; }
+    .book-card .author { font-size: 12px; color: var(--muted-foreground); margin-bottom: 8px; }
+    .book-card .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+    .book-card .stock-line { font-size: 11.5px; color: var(--muted-foreground); font-family: var(--font-mono); }
+    .book-card .foot { border-top: 1px solid var(--border); padding-top: 10px; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+    .icon-btn.on-fav { color: var(--destructive); }
+    .icon-btn.on-wish { color: var(--accent-text); }
+    .detail-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 32px; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0; background: var(--muted); padding: 12px 16px; border-radius: 8px; }
+    .info-grid .k { font-size: 11px; color: var(--muted-strong); display: block; }
+    .info-grid .v { font-size: 13px; font-weight: 600; }
+    .review { padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .review:last-child { border-bottom: none; }
+
+    /* Notificações */
+    .notif { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); background: #fff; align-items: flex-start; }
+    .notif:last-child { border-bottom: none; }
+    .notif.unread { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+    .notif-icon { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.prazo { background: var(--warning-soft); color: var(--warning-text); }
+    .notif-icon.multa { background: var(--destructive-soft); color: var(--destructive-text); }
+    .notif-icon.reserva { background: var(--accent-soft); color: var(--accent-text); }
+    .notif-icon.processo { background: var(--success-soft); color: var(--success-text); }
+    .notif-title { font-size: 13px; font-weight: 600; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .notif.unread .notif-title::after { content: "Nova"; font-size: 10px; background: var(--accent); color: #fff; padding: 1px 6px; border-radius: 999px; font-weight: 600; }
+    .notif-text { font-size: 12.5px; color: var(--muted-strong); margin-top: 2px; }
+    .notif-time { font-size: 11px; color: var(--muted-foreground); font-family: var(--font-mono); margin-top: 4px; }
+
+    /* Estados vazios */
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--muted-foreground); }
+    .empty-state .empty-icon { width: 52px; height: 52px; border-radius: 14px; background: var(--muted); color: var(--muted-strong); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+    .empty-state h3 { font-size: 15px; font-weight: 600; color: var(--foreground); margin-bottom: 4px; }
+    .empty-state p { font-size: 13px; max-width: 420px; margin: 0 auto 16px; }
+
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(24, 24, 27, 0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 16px; animation: fadeIn 0.15s ease; }
+    .modal { background: #fff; border-radius: 12px; width: 100%; max-width: 480px; box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.3); max-height: calc(100vh - 32px); display: flex; flex-direction: column; }
+    .modal.wide { max-width: 640px; }
+    .modal-head { padding: 16px 20px 8px; display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .modal-head h2 { font-size: 16px; font-weight: 700; }
+    .modal-body { padding: 4px 20px 16px; overflow-y: auto; font-size: 13px; }
+    .modal-foot { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+    .kv { display: grid; grid-template-columns: 140px 1fr; gap: 6px 12px; font-size: 13px; }
+    .kv dt { color: var(--muted-foreground); }
+    .kv dd { font-weight: 500; }
+    .ticket-code { font-family: var(--font-mono); font-size: 22px; font-weight: 600; letter-spacing: 0.04em; background: var(--accent-soft); color: var(--accent-text); border: 1px dashed var(--info-border); border-radius: 8px; padding: 12px; text-align: center; }
+
+    /* Toast (variantes) */
+    .toast-msg.error { background: #7F1D1D; }
+    .toast-msg { max-width: 360px; }
+
+    /* Autenticação */
+    .auth-wrap { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 100vh; }
+    .auth-aside { background: var(--muted); border-right: 1px solid var(--border); padding: 48px; display: flex; flex-direction: column; justify-content: center; }
+    .auth-main { display: flex; align-items: center; justify-content: center; padding: 32px 20px; background: #fff; }
+    .auth-card { width: 100%; max-width: 420px; }
+    .auth-card h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .feature-list { list-style: none; display: flex; flex-direction: column; gap: 12px; font-size: 13px; margin-top: 8px; }
+    .feature-list li { display: flex; gap: 10px; align-items: flex-start; }
+    .demo-box { border: 1px dashed #A1A1AA; border-radius: 8px; padding: 12px; background: #FAFAFA; font-size: 12px; }
+    .demo-box button { margin-top: 6px; }
+
+    /* Logs do job */
+    .log-box { background: #18181B; color: #E4E4E7; border-radius: 8px; padding: 12px 14px; font-family: var(--font-mono); font-size: 12px; line-height: 1.7; overflow-x: auto; }
+    .log-box .ok { color: #4ADE80; }
+    .log-box .warn { color: #FBBF24; }
+    .log-box .err { color: #F87171; }
+    .log-box .t { color: #A1A1AA; }
+    .step { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .step:last-child { border-bottom: none; }
+    .step-dot { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .step-dot.ok { background: var(--success-soft); color: var(--success-text); }
+    .step-dot.err { background: var(--destructive-soft); color: var(--destructive-text); }
+    .step-dot.skip { background: var(--muted); color: var(--muted-foreground); }
+
+    /* ============ Responsivo ============ */
+    @media (max-width: 1280px) {
+      .detail-layout { grid-template-columns: 240px minmax(0, 1fr); gap: 24px; }
+    }
+    /* Tablet: menu lateral recolhido em trilho de ícones */
+    @media (min-width: 768px) and (max-width: 1099px) {
+      .app-sidebar { width: 68px; padding: 12px 8px; align-items: stretch; }
+      .sidebar-brand { justify-content: center; padding: 0; }
+      .sidebar-brand .brand-title, .sidebar-brand .brand-tag, .sidebar-label, .sidebar-btn .lbl, .sidebar-footer .who-txt { display: none; }
+      .sidebar-btn { justify-content: center; padding: 10px 0; }
+      .sidebar-btn .nav-count { position: absolute; top: 2px; right: 4px; padding: 0 4px; font-size: 9.5px; }
+      .sidebar-menu { gap: 4px; }
+      .sidebar-footer { justify-content: center; }
+      .content { padding: 20px 20px 40px; }
+      .topbar { padding: 0 16px; }
+      .user-chip .who { display: none; }
+      .user-chip { padding: 3px; }
+      .menu-pop { right: 16px; }
+      .grid-main-side { grid-template-columns: 1fr; }
+      .auth-aside { padding: 32px; }
+    }
+    @media (max-width: 1099px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .detail-layout { grid-template-columns: 220px minmax(0, 1fr); gap: 20px; }
+    }
+    /* Telas estreitas: menu em gaveta */
+    @media (max-width: 767px) {
+      .menu-toggle { display: inline-flex; }
+      .app-sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 264px; transform: translateX(-100%); transition: transform 0.2s ease; z-index: 1500; box-shadow: none; }
+      .app-sidebar.open { transform: none; box-shadow: 10px 0 30px rgba(0, 0, 0, 0.2); }
+      .sidebar-scrim.open { display: block; position: fixed; inset: 0; background: rgba(24, 24, 27, 0.4); z-index: 1400; }
+      .content { padding: 16px 16px 40px; }
+      .topbar { padding: 0 12px; }
+      .user-chip .who { display: none; }
+      .menu-pop { right: 12px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .detail-layout { grid-template-columns: 1fr; }
+      .cover-lg { max-width: 220px; }
+      .grid-main-side { grid-template-columns: 1fr; }
+      .auth-wrap { grid-template-columns: 1fr; }
+      .auth-aside { display: none; }
+      .kv { grid-template-columns: 110px 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Pular para o conteúdo principal</a>
+  <div id="app"></div>
+  <div id="modalRoot"></div>
+  <div class="toast-container" id="toastContainer" role="status" aria-live="polite"></div>
+
+  <script>
+    'use strict';
+    /* =================================================================
+       ACERVO DIGITAL: SPA (HTML + CSS + JS puro, sem build)
+       Camadas deste arquivo:
+         1. Utilitários e ícones
+         2. Dados de demonstração e persistência local
+         3. Componentes reutilizáveis (toast, modal, alertas, badges...)
+         4. Layout (autenticação e shell com menu lateral e topo)
+         5. Telas, agrupadas por módulo
+         6. Roteador por hash e inicialização
+       Para integrar a uma API real, troque as funções do bloco
+       "Regras de negócio" por chamadas HTTP; as telas só leem o `db`.
+    ================================================================= */
+
+    /* ---------- 1. Utilitários ---------- */
+    const HOJE = '2026-10-17';          // data de referência da demonstração
+    const MULTA_DIA = 2.00;             // R$ por dia de atraso (FINE_AMOUNT_PER_DAY na API)
+    const PRAZO_DIAS = 30;              // prazo de devolução, contado a partir da retirada
+    const PAGE_SIZE = 8;
+
+    const $ = (s, r = document) => r.querySelector(s);
+    const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const pad = (n) => String(n).padStart(2, '0');
+    const plural = (n, s, p) => n + ' ' + (n === 1 ? s : p);
+
+    function fmtDate(iso) { if (!iso) return '-'; const p = iso.slice(0, 10).split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
+    function fmtTime(iso) { return iso && iso.length > 10 ? iso.slice(11, 16) : ''; }
+    function fmtDateTime(iso) { return iso ? fmtDate(iso) + (iso.length > 10 ? ' ' + fmtTime(iso) : '') : '-'; }
+    function fmtPub(iso) { if (!iso) return '-'; return iso.slice(5) === '01-01' ? iso.slice(0, 4) : fmtDate(iso); }
+    function toDate(iso) { const p = iso.slice(0, 10).split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2])); }
+    function addDays(iso, n) { const d = toDate(iso); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+    function diffDays(a, b) { return Math.round((toDate(a) - toDate(b)) / 86400000); }
+    function nowIso() { const d = new Date(); return HOJE + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+    function friendly(iso) {
+      if (!iso) return '-';
+      const d = iso.slice(0, 10);
+      if (d === HOJE) return 'Hoje, ' + fmtTime(iso);
+      if (d === addDays(HOJE, -1)) return 'Ontem, ' + fmtTime(iso);
+      return fmtDateTime(iso);
+    }
+    function dueText(iso) {
+      const n = diffDays(iso, HOJE);
+      if (n === 0) return 'vence hoje';
+      if (n === 1) return 'vence amanhã';
+      if (n > 1) return 'vence em ' + n + ' dias';
+      return 'venceu há ' + plural(-n, 'dia', 'dias');
+    }
+    function money(n) { return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }
+    function initials(t) {
+      const w = String(t).trim().split(/\s+/);
+      return (w.length > 1 ? w[0][0] + w[1][0] : String(t).slice(0, 2)).toUpperCase();
+    }
+    function nameInitials(n) { const w = String(n).replace(/^Prof\.\s*/, '').trim().split(/\s+/); return (w[0][0] + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase(); }
+    function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+    function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+    function debounce(fn, ms) { let t; return function () { const a = arguments; clearTimeout(t); t = setTimeout(() => fn.apply(null, a), ms); }; }
+
+    /* Ícones (estilo Lucide, traço 2) */
+    const ICONS = {
+      book: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+      dashboard: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+      library: '<path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/>',
+      clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+      dollar: '<line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+      star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+      heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+      bookmark: '<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>',
+      bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+      terminal: '<polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/>',
+      search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+      plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+      edit: '<path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+      trash: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+      x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+      check: '<polyline points="20 6 9 17 4 12"/>',
+      checkCircle: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+      alertTriangle: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+      alertCircle: '<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',
+      info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+      scan: '<path d="M3 5v14M8 5v14M12 5v14M17 5v14M21 5v14"/>',
+      logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
+      user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+      users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+      menu: '<line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>',
+      chevL: '<polyline points="15 18 9 12 15 6"/>',
+      chevR: '<polyline points="9 18 15 12 9 6"/>',
+      calendar: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+      eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+      eyeOff: '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>',
+      refresh: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+      activity: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+      clipboard: '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
+      mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+      lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+      arrowR: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+      arrowL: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+      image: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
+      play: '<polygon points="5 3 19 12 5 21 5 3"/>',
+      grid: '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+      list: '<line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/>',
+      ticket: '<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>',
+      inbox: '<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+      shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+      database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
+      swap: '<path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>'
+    };
+    function ico(name, size, fill) {
+      return '<svg width="' + (size || 16) + '" height="' + (size || 16) + '" viewBox="0 0 24 24" fill="' + (fill || 'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + (ICONS[name] || '') + '</svg>';
+    }
+    function stars(n, size) {
+      let h = '<span class="stars" role="img" aria-label="Nota ' + n + ' de 5">';
+      for (let i = 1; i <= 5; i++) h += ico('star', size || 14, i <= Math.round(n) ? 'currentColor' : 'none');
+      return h + '</span>';
+    }
+
+    /* ---------- 2. Dados de demonstração ---------- */
+    const STORE_KEY = 'acervo-digital:v2';
+    const SESSION_KEY = 'acervo-digital:sessao';
+    const GENEROS = ['Romance', 'Literatura Brasileira', 'Poesia', 'Ficção Científica', 'Fantasia', 'História', 'Tecnologia', 'Exatas', 'Biografia'];
+    const CONDICOES = ['Novo', 'Bom', 'Desgastado', 'Danificado'];
+    const PRIORIDADES = ['Alta', 'Média', 'Baixa'];
+
+    /* Ticket no mesmo formato da API: RET-AAAAMMDD-XXXXXXXX */
+    function ticketFor(n, date) { return 'RET-' + date.replace(/-/g, '') + '-' + ((n * 2654435761) >>> 0).toString(16).toUpperCase().padStart(8, '0'); }
+
+    function seedDb() {
+      const books = [
+        ['BR-004321', 'Dom Casmurro', 'Machado de Assis', 'Romance', 1899, 3, 'Bento Santiago narra suas memórias e o romance com Capitu, marcado pelo ciúme e pela dúvida sobre uma suposta traição.'],
+        ['BR-008104', 'O Cortiço', 'Aluísio Azevedo', 'Literatura Brasileira', 1890, 2, 'Retrato contundente das habitações coletivas cariocas do século XIX, entre paixões, ambição e desigualdade.'],
+        ['BR-007742', 'Vidas Secas', 'Graciliano Ramos', 'Literatura Brasileira', 1938, 2, 'A trajetória de uma família de retirantes sertanejos em busca de sobrevivência durante a seca no Nordeste.'],
+        ['BR-004400', 'Memórias Póstumas de Brás Cubas', 'Machado de Assis', 'Romance', 1881, 4, 'Um defunto autor narra sua vida com ironia e humor ácido, inaugurando o Realismo na literatura brasileira.'],
+        ['BR-006610', 'Grande Sertão: Veredas', 'João Guimarães Rosa', 'Literatura Brasileira', 1956, 2, 'O ex-jagunço Riobaldo relata sua vida no sertão mineiro, entre lealdades, o amor por Diadorim e o pacto com o diabo.'],
+        ['BR-009951', 'Algoritmos: Teoria e Prática', 'Thomas H. Cormen', 'Tecnologia', 2012, 4, 'Referência da computação moderna: análise assintótica, ordenação, grafos e algoritmos probabilísticos com rigor formal.'],
+        ['BR-002930', 'Cálculo com Geometria Analítica', 'Earl W. Swokowski', 'Exatas', 2014, 1, 'Obra clássica para cursos de engenharia e ciências exatas, com diferenciação, integração e aplicações.'],
+        ['BR-001188', 'Raízes do Brasil', 'Sérgio Buarque de Holanda', 'História', 1936, 1, 'Ensaio seminal que apresenta o conceito de "homem cordial" e examina a formação da identidade brasileira.'],
+        ['BR-003320', 'Código Limpo (Clean Code)', 'Robert C. Martin', 'Tecnologia', 2008, 3, 'Princípios, padrões e boas práticas para escrever código legível, sustentável e fácil de evoluir.'],
+        ['BR-005512', 'Duna', 'Frank Herbert', 'Ficção Científica', 1965, 2, 'Em Arrakis, planeta desértico fonte da especiaria mais valiosa do universo, a casa Atreides enfrenta intrigas e guerra.'],
+        ['BR-008100', 'O Hobbit', 'J. R. R. Tolkien', 'Fantasia', 1937, 1, 'Bilbo Bolseiro é arrastado por um mago e treze anões em uma jornada para reaver um tesouro guardado por um dragão.'],
+        ['BR-005230', '1984', 'George Orwell', 'Ficção Científica', 1949, 2, 'Em um Estado totalitário que vigia tudo, Winston Smith ousa pensar por conta própria e amar.'],
+        ['BR-006120', 'Capitães da Areia', 'Jorge Amado', 'Romance', 1937, 3, 'A vida de meninos de rua em Salvador, organizados em bando, entre a violência, a solidariedade e o sonho de liberdade.'],
+        ['BR-003321', 'Sapiens: Uma Breve História da Humanidade', 'Yuval Noah Harari', 'História', 2011, 3, 'Panorama da trajetória humana, das origens cognitivas às revoluções agrícola, científica e industrial.'],
+        ['BR-003319', 'Introdução à Mecânica Quântica', 'David J. Griffiths', 'Exatas', 2011, 2, 'Texto didático sobre os fundamentos da mecânica quântica.'],
+        ['BR-007020', 'A Rosa do Povo', 'Carlos Drummond de Andrade', 'Poesia', 1945, 2, 'Coletânea de poemas que mistura lirismo e crítica social, escrita sob a sombra da Segunda Guerra Mundial.']
+      ].map((b) => ({ id: b[0], title: b[1], author: b[2], genre: b[3], pubDate: b[4] + '-01-01', stock: b[5], cover: null, synopsis: b[6] }));
+      const titleOf = (id) => books.find((b) => b.id === id).title;
+      const authorOf = (id) => books.find((b) => b.id === id).author;
+
+      /* Datas derivadas do vencimento: retirada = vencimento - 30 dias, reserva = 2 dias antes da retirada */
+      const L = (n, userId, bookId, status, o) => {
+        o = Object.assign({}, o);
+        if (o.dueDate) { o.withdrawnAt = addDays(o.dueDate, -PRAZO_DIAS); o.reservedAt = addDays(o.withdrawnAt, -2); }
+        return Object.assign({ id: 'LC-' + String(n).padStart(4, '0'), ticket: ticketFor(n, o.reservedAt), userId, bookId, bookTitle: titleOf(bookId), bookAuthor: authorOf(bookId), status }, o);
+      };
+      const loans = [
+        L(1, 'u1', 'BR-004321', 'ativa', { dueDate: '2026-10-22' }),
+        L(2, 'u1', 'BR-009951', 'ativa', { dueDate: '2026-10-17' }),
+        L(3, 'u1', 'BR-007742', 'atrasada', { dueDate: '2026-10-10', fineId: 'F-041' }),
+        L(4, 'u1', 'BR-001188', 'reservada', { reservedAt: '2026-10-16' }),
+        L(5, 'u1', 'BR-008104', 'devolvida', { dueDate: '2026-09-03', returnedAt: '2026-09-01' }),
+        L(6, 'u1', 'BR-003320', 'devolvida', { dueDate: '2026-08-10', returnedAt: '2026-08-13', fineId: 'F-018' }),
+        L(7, 'u1', 'BR-005512', 'cancelada', { reservedAt: '2026-09-10', cancelledAt: '2026-09-12' }),
+        L(8, 'u2', 'BR-002930', 'atrasada', { dueDate: '2026-10-16', fineId: 'F-043' }),
+        L(9, 'u3', 'BR-003321', 'ativa', { dueDate: '2026-10-20' }),
+        L(10, 'u3', 'BR-005230', 'ativa', { dueDate: '2026-10-20' }),
+        L(11, 'u4', 'BR-008100', 'atrasada', { dueDate: '2026-10-09', fineId: 'F-040' }),
+        L(12, 'u5', 'BR-003319', 'atrasada', { dueDate: '2026-10-05', fineId: 'F-039' }),
+        L(13, 'u6', 'BR-008104', 'reservada', { reservedAt: '2026-10-17' }),
+        L(14, 'u2', 'BR-005512', 'reservada', { reservedAt: '2026-10-17' }),
+        L(15, 'u6', 'BR-005230', 'devolvida', { dueDate: '2026-09-04', returnedAt: '2026-09-09', fineId: 'F-025' }),
+        L(16, 'u4', 'BR-004400', 'devolvida', { dueDate: '2026-10-16', returnedAt: '2026-10-15' })
+      ];
+      /* Na API, stock é a quantidade disponível: cada reserva ou locação em aberto já foi descontada */
+      books.forEach((b) => { b.stock = Math.max(0, b.stock - loans.filter((l) => l.bookId === b.id && ['reservada', 'ativa', 'atrasada'].indexOf(l.status) >= 0).length); });
+
+      const F = (id, loanId, userId, bookId, days, status, createdAt, paidAt) => ({ id, loanId, userId, bookId, bookTitle: titleOf(bookId), days, amount: days * MULTA_DIA, status, createdAt, paidAt: paidAt || null });
+      const N = (n, userId, type, text, at, read) => ({ id: 'N-' + String(n).padStart(3, '0'), userId, type, text, at, read: !!read });
+      const R = (n, userId, bookId, rating, condition, comment, date) => ({ id: 'RV-' + String(n).padStart(3, '0'), userId, bookId, rating, condition, comment, date });
+      const late = (title, days) => "Sua locação de '" + title + "' está com " + days + ' dia(s) de atraso. Multa atual: ' + money(days * MULTA_DIA) + '.';
+      const dueToday = (title) => "Sua locação de '" + title + "' vence hoje. Devolva no balcão para evitar multa.";
+      const settled = (title, days) => "Sua multa referente a '" + title + "' (" + money(days * MULTA_DIA) + ') foi quitada.';
+
+      /* Execuções do job no formato do log da API (coleção jobs) */
+      const J = (d, scanned, overdue, fines, notifs, extra) => Object.assign({
+        id: 'JOB-' + d.replace(/-/g, ''), name: 'daily_jobs.process', status: 'success',
+        startedAt: d + 'T03:00:02', finishedAt: d + 'T03:00:' + String(5 + scanned).padStart(2, '0'),
+        request: { method: 'POST', path: '/api/v1/daily-jobs/process', query: {} },
+        response: { statusCode: 200, body: { overdueMarked: overdue, finesCreated: fines, notificationsSent: notifs } },
+        details: { referenceDate: d, summary: { overdueMarked: overdue, finesCreated: fines, notificationsSent: notifs }, rentalsScanned: scanned, rentals: [] },
+        error: null, traceback: null
+      }, extra || {});
+      const todayRun = J(HOJE, 8, 1, 1, 5);
+      todayRun.details.rentals = [
+        { rentalId: 'LC-0002', ticketCode: loans[1].ticket, userId: 'u1', event: 'due_today', notificationSent: true },
+        { rentalId: 'LC-0003', ticketCode: loans[2].ticket, userId: 'u1', event: 'overdue', daysLate: 7, markedOverdue: false, fineCreated: false, fineAmount: '14.00', notificationSent: true },
+        { rentalId: 'LC-0008', ticketCode: loans[7].ticket, userId: 'u2', event: 'overdue', daysLate: 1, markedOverdue: true, fineCreated: true, fineAmount: '2.00', notificationSent: true },
+        { rentalId: 'LC-0011', ticketCode: loans[10].ticket, userId: 'u4', event: 'overdue', daysLate: 8, markedOverdue: false, fineCreated: false, fineAmount: '16.00', notificationSent: true },
+        { rentalId: 'LC-0012', ticketCode: loans[11].ticket, userId: 'u5', event: 'overdue', daysLate: 12, markedOverdue: false, fineCreated: false, fineAmount: '24.00', notificationSent: true }
+      ];
+
+      /* Últimas operações: derivadas das datas de retirada e devolução, como no resumo de circulação da API */
+      const ops = [];
+      loans.forEach((l) => {
+        if (l.withdrawnAt) ops.push({ at: l.withdrawnAt + 'T10:00', type: 'retirada', loanId: l.id });
+        if (l.returnedAt) ops.push({ at: l.returnedAt + 'T16:00', type: 'devolucao', loanId: l.id });
+      });
+      ops.sort((a, b) => (a.at < b.at ? 1 : -1));
+
+      return {
+        v: 2,
+        seq: { loan: 16, fine: 43, review: 12, notif: 13, op: ops.length, user: 7 },
+        users: [
+          { id: 'u1', name: 'Lucas Pereira', email: 'leitor@acervo.com', password: 'senha12345', role: 'leitor' },
+          { id: 'b1', name: 'Ana Costa', email: 'bibliotecario@acervo.com', password: 'senha12345', role: 'bibliotecario' },
+          { id: 'u2', name: 'Mariana Dias', email: 'mariana.dias@email.com', password: 'mariana123', role: 'leitor' },
+          { id: 'u3', name: 'Prof. Carlos Eduardo Rios', email: 'carlos.rios@email.com', password: 'carlos123', role: 'leitor' },
+          { id: 'u4', name: 'Fernanda Guimarães', email: 'fernanda.g@email.com', password: 'fernanda123', role: 'leitor' },
+          { id: 'u5', name: 'Gustavo Prado', email: 'gustavo.prado@email.com', password: 'gustavo123', role: 'leitor' },
+          { id: 'u6', name: 'Rodrigo Albuquerque', email: 'rodrigo.a@email.com', password: 'rodrigo123', role: 'leitor' }
+        ],
+        books,
+        loans,
+        fines: [
+          F('F-041', 'LC-0003', 'u1', 'BR-007742', 7, 'pendente', '2026-10-11'),
+          F('F-018', 'LC-0006', 'u1', 'BR-003320', 3, 'quitada', '2026-08-11', '2026-08-14'),
+          F('F-043', 'LC-0008', 'u2', 'BR-002930', 1, 'pendente', '2026-10-17'),
+          F('F-040', 'LC-0011', 'u4', 'BR-008100', 8, 'pendente', '2026-10-10'),
+          F('F-039', 'LC-0012', 'u5', 'BR-003319', 12, 'pendente', '2026-10-06'),
+          F('F-025', 'LC-0015', 'u6', 'BR-005230', 5, 'quitada', '2026-09-05', '2026-09-10')
+        ],
+        reviews: [
+          R(1, 'u1', 'BR-008104', 5, 'Bom', 'Retrato forte e atual da vida coletiva no Rio antigo. O exemplar estava bem conservado.', '2026-09-02'),
+          R(2, 'u1', 'BR-003320', 4, 'Desgastado', 'Ótimo conteúdo, mas a capa do exemplar estava solta.', '2026-08-14'),
+          R(3, 'u2', 'BR-004321', 5, 'Novo', 'Capitu continua dividindo opiniões. Leitura obrigatória!', '2026-09-20'),
+          R(4, 'u3', 'BR-004321', 4, 'Bom', 'Clássico indispensável, com linguagem que envelheceu bem.', '2026-09-11'),
+          R(5, 'u4', 'BR-004321', 3, 'Desgastado', '', '2026-08-30'),
+          R(6, 'u5', 'BR-009951', 5, 'Bom', 'Referência para quem estuda computação. Os exercícios são excelentes.', '2026-10-01'),
+          R(7, 'u2', 'BR-009951', 4, 'Bom', 'Denso, porém muito bem explicado.', '2026-09-05'),
+          R(8, 'u6', 'BR-005230', 5, 'Bom', 'Atual e perturbador. Difícil largar.', '2026-09-12'),
+          R(9, 'u3', 'BR-001188', 4, 'Danificado', 'Ensaio denso, vale a releitura. O exemplar está com páginas soltas.', '2026-09-18'),
+          R(10, 'u6', 'BR-003321', 4, 'Novo', 'Boa visão geral, com algumas generalizações.', '2026-08-25'),
+          R(11, 'u4', 'BR-007742', 5, 'Bom', 'Seca, curta e devastadora. Um clássico.', '2026-10-03'),
+          R(12, 'u5', 'BR-005230', 5, 'Novo', '', '2026-09-28')
+        ],
+        favorites: { u1: ['BR-004321', 'BR-007742', 'BR-009951'] },
+        wishlist: { u1: [
+          { bookId: 'BR-005512', priority: 'Alta', note: 'Quero ler antes de assistir ao filme.' },
+          { bookId: 'BR-006610', priority: 'Média', note: 'Indicação do professor de literatura.' },
+          { bookId: 'BR-003321', priority: 'Baixa', note: '' }
+        ] },
+        notifications: [
+          N(1, 'u1', 'prazo', dueToday('Algoritmos: Teoria e Prática'), HOJE + 'T03:00'),
+          N(2, 'u1', 'multa', late('Vidas Secas', 7), HOJE + 'T03:00'),
+          N(3, 'u1', 'multa', late('Vidas Secas', 6), '2026-10-16T03:00', true),
+          N(4, 'u1', 'quitacao', settled('Código Limpo (Clean Code)', 3), '2026-08-14T10:20', true),
+          N(5, 'u2', 'multa', late('Cálculo com Geometria Analítica', 1), HOJE + 'T03:00'),
+          N(6, 'u4', 'multa', late('O Hobbit', 8), HOJE + 'T03:00'),
+          N(7, 'u5', 'multa', late('Introdução à Mecânica Quântica', 12), HOJE + 'T03:00'),
+          N(8, 'u6', 'quitacao', settled('1984', 5), '2026-09-10T09:40', true)
+        ],
+        jobRuns: [
+          J('2026-10-06', 7, 0, 1, 2), J('2026-10-07', 7, 1, 0, 3), J('2026-10-08', 8, 0, 0, 2), J('2026-10-09', 8, 0, 0, 3),
+          J('2026-10-10', 8, 1, 1, 4),
+          J('2026-10-11', 4, 1, 0, 0, {
+            status: 'failed', finishedAt: '2026-10-11T03:00:35',
+            response: { statusCode: 500, body: { error: "Job 'daily_jobs.process' failed." } },
+            details: { referenceDate: '2026-10-11', summary: { overdueMarked: 1, finesCreated: 0, notificationsSent: 0 }, rentalsScanned: 4, rentals: [] },
+            error: 'cluster0.example.mongodb.net:27017: timed out',
+            traceback: 'Traceback (most recent call last):\n  File "/app/apps/jobs/services.py", line 16, in run_job\n    body = handler(details)\n  File "/app/apps/daily_jobs/services.py", line 51, in process_daily_jobs\n    fine, created = get_or_create_fine(rental, days_late)\npymongo.errors.ServerSelectionTimeoutError: cluster0.example.mongodb.net:27017: timed out'
+          }),
+          J('2026-10-12', 8, 0, 1, 4), J('2026-10-13', 8, 0, 0, 3), J('2026-10-14', 8, 0, 0, 3), J('2026-10-15', 8, 0, 0, 3), J('2026-10-16', 8, 0, 0, 4),
+          todayRun
+        ],
+        ops,
+        circ7: [['Dom', 2], ['Seg', 19], ['Ter', 24], ['Qua', 21], ['Qui', 26], ['Sex', 23], ['Sáb', 9]]
+      };
+    }
+
+    let db = null;
+    let sessionUserId = null;
+    function loadDb() {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (raw) { const d = JSON.parse(raw); if (d && d.v === 2 && d.users && d.loans) return d; }
+      } catch (e) { /* armazenamento indisponível: segue com dados em memória */ }
+      return seedDb();
+    }
+    function saveDb() { try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); } catch (e) { /* ignora */ } }
+    function resetDb() { db = seedDb(); saveDb(); }
+    function loadSession() { try { return sessionStorage.getItem(SESSION_KEY); } catch (e) { return null; } }
+    function saveSession(id) { try { if (id) sessionStorage.setItem(SESSION_KEY, id); else sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* ignora */ } }
+
+    /* ---------- Seletores ---------- */
+    const userById = (id) => db.users.find((u) => u.id === id);
+    const bookById = (id) => db.books.find((b) => b.id === id);
+    const loanById = (id) => db.loans.find((l) => l.id === id);
+    const fineById = (id) => db.fines.find((f) => f.id === id);
+    const runById = (id) => db.jobRuns.find((r) => r.id === id);
+    const me = () => userById(sessionUserId);
+    const isLib = () => !!me() && me().role === 'bibliotecario';
+    const OPEN = ['reservada', 'ativa', 'atrasada'];
+    const REVIEWABLE = ['ativa', 'atrasada', 'devolvida'];
+    /* A locação guarda título e autor do livro (snapshot), como na API: o histórico continua legível se o livro for removido */
+    function loanBook(l) { return bookById(l.bookId) || { id: l.bookId, title: l.bookTitle, author: l.bookAuthor, cover: null }; }
+    function fineTitle(f) { return f.bookTitle; }
+    function openLoansOf(bookId) { return db.loans.filter((l) => l.bookId === bookId && OPEN.indexOf(l.status) >= 0).length; }
+    function available(b) { return b.stock; }
+    function bookAvail(b) { return b.stock > 0; }
+    function canReview(bookId) { return db.loans.some((l) => l.userId === sessionUserId && l.bookId === bookId && REVIEWABLE.indexOf(l.status) >= 0); }
+    function ratingOf(bookId) {
+      const r = db.reviews.filter((x) => x.bookId === bookId);
+      return { n: r.length, avg: r.length ? r.reduce((s, x) => s + x.rating, 0) / r.length : 0 };
+    }
+    function myLoans() { return db.loans.filter((l) => l.userId === sessionUserId); }
+    function myFines() { return db.fines.filter((f) => f.userId === sessionUserId); }
+    function myNotifs() { return db.notifications.filter((n) => n.userId === sessionUserId).sort((a, b) => (a.at < b.at ? 1 : -1)); }
+    function unreadCount() { return db.notifications.filter((n) => n.userId === sessionUserId && !n.read).length; }
+    function favs() { return db.favorites[sessionUserId] || (db.favorites[sessionUserId] = []); }
+    function wishes() { return db.wishlist[sessionUserId] || (db.wishlist[sessionUserId] = []); }
+    function pendingFines(list) { return (list || db.fines).filter((f) => f.status === 'pendente'); }
+    function sumFines(list) { return list.reduce((s, f) => s + f.amount, 0); }
+    function nextId(key, prefix, width) { db.seq[key] = (db.seq[key] || 0) + 1; return prefix + String(db.seq[key]).padStart(width, '0'); }
+    function lastRun() { return db.jobRuns.slice().sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1))[0]; }
+
+    /* ---------- Badges ---------- */
+    function badge(cls, text, lg) { return '<span class="status-badge ' + cls + (lg ? ' lg' : '') + '">' + esc(text) + '</span>'; }
+    const LOAN_BADGE = { reservada: ['badge-reservado', 'Reservada'], ativa: ['badge-info', 'Ativa'], atrasada: ['badge-atrasado', 'Atrasada'], devolvida: ['badge-disponivel', 'Devolvida'], cancelada: ['badge-emprestado', 'Cancelada'] };
+    function loanBadge(s, lg) { const b = LOAN_BADGE[s] || ['badge-emprestado', s]; return badge(b[0], b[1], lg); }
+    function availBadge(b, lg) { return bookAvail(b) ? badge('badge-disponivel', 'Disponível', lg) : badge('badge-emprestado', 'Indisponível', lg); }
+    function fineBadge(f, lg) { return f.status === 'pendente' ? badge('badge-atrasado', 'Pendente', lg) : badge('badge-disponivel', 'Quitada', lg); }
+    function priorityBadge(p) { return badge(p === 'Alta' ? 'badge-atrasado' : p === 'Média' ? 'badge-reservado' : 'badge-emprestado', p); }
+    /* Os 3 tipos de notificação gerados pela API: due_date_reminder, fine_generated e fine_settled */
+    const NOTIF_TYPES = { prazo: ['badge-reservado', 'Vencimento hoje', 'clock', 'prazo'], multa: ['badge-atrasado', 'Multa gerada', 'dollar', 'multa'], quitacao: ['badge-disponivel', 'Multa quitada', 'checkCircle', 'processo'] };
+    function notifBadge(t) { return badge(NOTIF_TYPES[t][0], NOTIF_TYPES[t][1]); }
+    function jobBadge(s, lg) { return s === 'success' ? badge('badge-disponivel', 'Sucesso', lg) : badge('badge-atrasado', 'Falha', lg); }
+
+    /* ---------- Regras de negócio (espelham a API; troque por chamadas HTTP em produção) ---------- */
+    function notify(userId, type, text) {
+      db.notifications.unshift({ id: nextId('notif', 'N-', 3), userId, type, text, at: nowIso(), read: false });
+    }
+    function logOp(type, loanId) { db.ops.unshift({ at: nowIso(), type, loanId }); }
+    function findLoanByTicket(code) {
+      const c = String(code || '').trim().toUpperCase().replace(/\s+/g, '');
+      return db.loans.find((l) => l.ticket === c) || null;
+    }
+
+    function createReservation(userId, bookId) {
+      const b = bookById(bookId);
+      if (!b) return { ok: false, error: 'Livro não encontrado.' };
+      if (db.loans.some((l) => l.userId === userId && l.bookId === bookId && OPEN.indexOf(l.status) >= 0)) {
+        return { ok: false, error: 'Você já possui uma reserva ou locação em aberto deste livro.' };
+      }
+      if (b.stock < 1) return { ok: false, error: 'Não há exemplares disponíveis no momento.' };
+      b.stock -= 1;
+      const id = nextId('loan', 'LC-', 4);
+      const loan = { id, ticket: ticketFor(db.seq.loan + 1000, HOJE), userId, bookId, bookTitle: b.title, bookAuthor: b.author, status: 'reservada', reservedAt: HOJE };
+      db.loans.unshift(loan);
+      if (db.wishlist[userId]) db.wishlist[userId] = db.wishlist[userId].filter((w) => w.bookId !== bookId);
+      saveDb();
+      return { ok: true, loan };
+    }
+
+    function cancelReservation(loanId) {
+      const l = loanById(loanId);
+      if (!l || l.status !== 'reservada') return { ok: false, error: 'Somente reservas ainda não retiradas podem ser canceladas.' };
+      l.status = 'cancelada'; l.cancelledAt = HOJE;
+      const b = bookById(l.bookId); if (b) b.stock += 1;
+      saveDb();
+      return { ok: true, loan: l };
+    }
+
+    function confirmPickup(l) {
+      l.status = 'ativa'; l.withdrawnAt = HOJE; l.dueDate = addDays(HOJE, PRAZO_DIAS);
+      logOp('retirada', l.id);
+      saveDb();
+      return { ok: true };
+    }
+
+    /* A devolução não cria multa: quem cria e atualiza multas é o processamento diário */
+    function confirmReturn(l) {
+      const late = Math.max(0, diffDays(HOJE, l.dueDate));
+      l.status = 'devolvida'; l.returnedAt = HOJE;
+      const b = bookById(l.bookId); if (b) b.stock += 1;
+      logOp('devolucao', l.id);
+      saveDb();
+      return { ok: true, late, fine: l.fineId ? fineById(l.fineId) : null };
+    }
+
+    function registerFinePayment(fineId) {
+      const f = fineById(fineId);
+      if (!f || f.status !== 'pendente') return { ok: false };
+      f.status = 'quitada'; f.paidAt = HOJE;
+      notify(f.userId, 'quitacao', "Sua multa referente a '" + fineTitle(f) + "' (" + money(f.amount) + ') foi quitada.');
+      saveDb();
+      return { ok: true };
+    }
+
+    function deleteBook(id) {
+      if (openLoansOf(id) > 0) return { ok: false, error: 'Não é possível remover um livro com locações ou reservas em aberto.' };
+      db.books = db.books.filter((b) => b.id !== id);
+      Object.keys(db.favorites).forEach((u) => { db.favorites[u] = db.favorites[u].filter((x) => x !== id); });
+      Object.keys(db.wishlist).forEach((u) => { db.wishlist[u] = db.wishlist[u].filter((w) => w.bookId !== id); });
+      db.reviews = db.reviews.filter((r) => r.bookId !== id);
+      saveDb();
+      return { ok: true };
+    }
+
+    /* ---------- 3. Componentes reutilizáveis ---------- */
+    function defaultFilters() {
+      return {
+        catalog: { title: '', author: '', genre: '', releaseDate: '', sort: 'title', view: 'grid', page: 1 },
+        loans: { q: '', status: '', page: 1 },
+        fines: { status: '', page: 1 },
+        notifs: { type: '', page: 1 },
+        logs: { status: '', page: 1 },
+        readers: { q: '', page: 1 },
+        circ: { code: '', result: null }
+      };
+    }
+    const ui = {
+      flash: null,       // mensagem única exibida na próxima tela
+      next: null,        // rota solicitada antes do login
+      f: defaultFilters() // estado dos filtros por tela (reinicia a cada troca de sessão)
+    };
+    const RESULTS = {};   // scope => função que devolve o HTML da área de resultados
+
+    function toast(text, type) {
+      const c = $('#toastContainer'); if (!c) return;
+      const t = document.createElement('div');
+      t.className = 'toast-msg font-mono' + (type === 'error' ? ' error' : '');
+      t.innerHTML = (type === 'error'
+        ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>'
+        : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>') + '<span>' + esc(text) + '</span>';
+      c.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.2s'; setTimeout(() => t.remove(), 200); }, 3200);
+    }
+
+    function alertBox(type, title, html, action) {
+      const icon = type === 'success' ? 'checkCircle' : type === 'error' ? 'alertCircle' : type === 'warning' ? 'alertTriangle' : 'info';
+      return '<div class="callout callout-' + type + '" role="' + (type === 'error' ? 'alert' : 'status') + '">' + ico(icon, 16) +
+        '<div class="callout-body">' + (title ? '<b>' + esc(title) + '</b> ' : '') + html + '</div>' + (action ? '<div class="callout-action">' + action + '</div>' : '') + '</div>';
+    }
+
+    function emptyState(icon, title, text, actionHtml) {
+      return '<div class="empty-state"><div class="empty-icon">' + ico(icon, 24) + '</div><h3>' + esc(title) + '</h3><p>' + text + '</p>' + (actionHtml || '') + '</div>';
+    }
+
+    function pageHead(title, sub, actions) {
+      return '<div class="page-head"><div><h1 class="page-title">' + esc(title) + '</h1>' + (sub ? '<p class="page-sub">' + sub + '</p>' : '') + '</div>' + (actions ? '<div class="page-actions">' + actions + '</div>' : '') + '</div>';
+    }
+    function crumbs(list) {
+      return '<nav class="crumbs" aria-label="Você está em">' + list.map((c, i) => {
+        const last = i === list.length - 1;
+        return (c[1] && !last ? '<a href="' + c[1] + '">' + esc(c[0]) + '</a>' : '<span' + (last ? ' aria-current="page"' : '') + '>' + esc(c[0]) + '</span>') + (last ? '' : ico('chevR', 12));
+      }).join('') + '</nav>';
+    }
+    function btn(label, onclick, opts) {
+      opts = opts || {};
+      return '<button type="' + (opts.type || 'button') + '" class="btn-minimal ' + (opts.cls || '') + '"' + (onclick ? ' onclick="' + onclick + '"' : '') + (opts.attrs ? ' ' + opts.attrs : '') + '>' + (opts.icon ? ico(opts.icon, opts.iconSize || 14, opts.iconFill) : '') + label + '</button>';
+    }
+    function linkBtn(label, href, opts) {
+      opts = opts || {};
+      return '<a class="btn-minimal ' + (opts.cls || '') + '" href="' + href + '"' + (opts.attrs ? ' ' + opts.attrs : '') + '>' + (opts.icon ? ico(opts.icon, 14) : '') + label + '</a>';
+    }
+    function kpi(label, value, hint, o) {
+      o = o || {};
+      const tag = o.href ? 'a' : 'div';
+      return '<' + tag + ' class="kpi-card ' + (o.cls || '') + '"' + (o.href ? ' href="' + o.href + '"' : '') + '><span class="kpi-label"><span>' + esc(label) + '</span>' + (o.icon ? '<span style="color:var(--muted-foreground)">' + ico(o.icon, 16) + '</span>' : '') + '</span><div class="kpi-value">' + value + '</div><span class="kpi-hint">' + hint + '</span></' + tag + '>';
+    }
+
+    /* Capa: iniciais ou imagem enviada */
+    function cover(b, size) {
+      return '<div class="cover-box cover-' + size + '" aria-hidden="true">' + (b.cover ? '<img src="' + b.cover + '" alt="">' : esc(initials(b.title))) + '</div>';
+    }
+
+    /* ---------- Modais ---------- */
+    let modalState = null;
+    let pendingConfirm = null;
+    function openModal(o) {
+      const prev = document.activeElement;
+      $('#modalRoot').innerHTML = '<div class="modal-backdrop" onmousedown="if(event.target===this)closeModal()">' +
+        '<div class="modal' + (o.wide ? ' wide' : '') + '" role="dialog" aria-modal="true" aria-labelledby="modalTitle">' +
+        '<div class="modal-head"><h2 id="modalTitle">' + esc(o.title) + '</h2><button type="button" class="icon-btn sm" aria-label="Fechar" onclick="closeModal()">' + ico('x', 16) + '</button></div>' +
+        '<div class="modal-body">' + o.body + '</div>' + (o.actions ? '<div class="modal-foot">' + o.actions + '</div>' : '') + '</div></div>';
+      modalState = { prev };
+      const first = $('#modalRoot [data-autofocus]') || $('#modalRoot .modal-foot button:last-child') || $('#modalRoot .icon-btn');
+      if (first) first.focus();
+    }
+    function closeModal() {
+      const root = $('#modalRoot'); if (root) root.innerHTML = '';
+      const prev = modalState && modalState.prev;
+      modalState = null; pendingConfirm = null;
+      if (prev && prev.focus && document.contains(prev)) { try { prev.focus(); } catch (e) { /* ignora */ } }
+    }
+    function confirmModal(o) {
+      pendingConfirm = o.onConfirm;
+      openModal({
+        title: o.title,
+        body: (o.icon ? '<div style="display:flex;gap:12px;align-items:flex-start">' + '<div class="notif-icon ' + (o.danger ? 'multa' : 'reserva') + '">' + ico(o.icon, 18) + '</div><div style="flex:1">' + o.html + '</div></div>' : o.html),
+        actions: '<button type="button" class="btn-minimal" onclick="closeModal()">' + esc(o.cancelLabel || 'Cancelar') + '</button>' +
+          '<button type="button" class="btn-minimal ' + (o.danger ? 'btn-danger-solid' : 'btn-primary-solid') + '" data-autofocus onclick="runConfirm()">' + esc(o.confirmLabel || 'Confirmar') + '</button>'
+      });
+    }
+    function runConfirm() { const fn = pendingConfirm; closeModal(); if (fn) fn(); }
+    document.addEventListener('keydown', (e) => {
+      if (!modalState) return;
+      if (e.key === 'Escape') { closeModal(); return; }
+      if (e.key === 'Tab') {
+        const els = $$('#modalRoot button, #modalRoot input, #modalRoot select, #modalRoot textarea, #modalRoot a[href]').filter((x) => !x.disabled);
+        if (!els.length) return;
+        const first = els[0], last = els[els.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
+
+    /* ---------- Formulários e validação ---------- */
+    function fieldHtml(o) {
+      const id = o.id, tag = o.tag || 'input';
+      const common = ' id="' + id + '" name="' + id + '" aria-describedby="' + id + '-err' + (o.hint ? ' ' + id + '-hint' : '') + '"' + (o.required ? ' aria-required="true"' : '') + (o.attrs ? ' ' + o.attrs : '');
+      let control;
+      if (tag === 'select') {
+        control = '<select class="input-minimal"' + common + '>' + (o.placeholder ? '<option value="">' + esc(o.placeholder) + '</option>' : '') +
+          o.options.map((x) => { const v = Array.isArray(x) ? x[0] : x, l = Array.isArray(x) ? x[1] : x; return '<option value="' + esc(v) + '"' + (String(o.value) === String(v) ? ' selected' : '') + '>' + esc(l) + '</option>'; }).join('') + '</select>';
+      } else if (tag === 'textarea') {
+        control = '<textarea class="input-minimal"' + common + (o.placeholder ? ' placeholder="' + esc(o.placeholder) + '"' : '') + '>' + esc(o.value || '') + '</textarea>';
+      } else if (o.type === 'password') {
+        control = '<div class="pw-wrap"><input class="input-minimal" type="password"' + common + (o.autocomplete ? ' autocomplete="' + o.autocomplete + '"' : '') + (o.placeholder ? ' placeholder="' + esc(o.placeholder) + '"' : '') + '>' +
+          '<button type="button" class="icon-btn" aria-label="Mostrar ou ocultar senha" onclick="togglePw(\'' + id + '\')">' + ico('eye', 16) + '</button></div>';
+      } else {
+        control = '<input class="input-minimal" type="' + (o.type || 'text') + '"' + common + ' value="' + esc(o.value || '') + '"' + (o.placeholder ? ' placeholder="' + esc(o.placeholder) + '"' : '') + (o.autocomplete ? ' autocomplete="' + o.autocomplete + '"' : '') + '>';
+      }
+      return '<div class="form-field' + (o.cls ? ' ' + o.cls : '') + '" id="f-' + id + '"><label for="' + id + '">' + esc(o.label) + (o.required ? ' <span class="req" aria-hidden="true">*</span>' : '') + '</label>' + control +
+        (o.hint ? '<span class="hint" id="' + id + '-hint">' + o.hint + '</span>' : '') +
+        '<span class="error-msg" id="' + id + '-err" role="alert"></span></div>';
+    }
+    function togglePw(id) {
+      const i = $('#' + id); if (!i) return;
+      const show = i.type === 'password'; i.type = show ? 'text' : 'password';
+      const b = i.parentNode.querySelector('button'); if (b) b.innerHTML = ico(show ? 'eyeOff' : 'eye', 16);
+    }
+    function setErr(id, msg) {
+      const f = $('#f-' + id), e = $('#' + id + '-err'), i = $('#' + id); if (!f) return;
+      f.classList.toggle('has-error', !!msg);
+      if (e) e.textContent = msg || '';
+      if (i) { if (msg) i.setAttribute('aria-invalid', 'true'); else i.removeAttribute('aria-invalid'); }
+    }
+    function clearErrs(ids) { ids.forEach((id) => setErr(id, '')); }
+    function val(id, raw) { const el = $('#' + id); return el ? (raw ? el.value : el.value.trim()) : ''; }
+    function focusFirstError() { const f = $('.form-field.has-error input, .form-field.has-error select, .form-field.has-error textarea'); if (f) f.focus(); }
+
+    /* ---------- Paginação ---------- */
+    function paginate(list, page) {
+      const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+      const p = Math.min(Math.max(1, page || 1), pages);
+      return { items: list.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE), page: p, pages, total: list.length };
+    }
+    function pagerHtml(scope, pg) {
+      if (pg.pages <= 1) return '<div class="card-foot"><span class="font-mono muted">' + plural(pg.total, 'registro', 'registros') + '</span></div>';
+      let nums = '';
+      for (let i = 1; i <= pg.pages; i++) nums += '<button type="button" class="btn-minimal btn-sm ' + (i === pg.page ? 'active' : 'btn-ghost') + '" onclick="setF(\'' + scope + '\',\'page\',' + i + ')"' + (i === pg.page ? ' aria-current="page"' : '') + ' aria-label="Página ' + i + '">' + i + '</button>';
+      return '<div class="card-foot"><span class="font-mono muted">Página ' + pg.page + ' de ' + pg.pages + ' (' + plural(pg.total, 'registro', 'registros') + ')</span>' +
+        '<div class="pager"><button type="button" class="btn-minimal btn-ghost btn-sm" onclick="setF(\'' + scope + '\',\'page\',' + (pg.page - 1) + ')"' + (pg.page <= 1 ? ' disabled' : '') + '>Anterior</button>' + nums +
+        '<button type="button" class="btn-minimal btn-ghost btn-sm" onclick="setF(\'' + scope + '\',\'page\',' + (pg.page + 1) + ')"' + (pg.page >= pg.pages ? ' disabled' : '') + '>Próxima</button></div></div>';
+    }
+    function setF(scope, key, value) {
+      ui.f[scope][key] = value;
+      if (key !== 'page') ui.f[scope].page = 1;
+      refresh(scope);
+    }
+    function refresh(scope) { const el = $('#res-' + scope); if (el && RESULTS[scope]) el.innerHTML = RESULTS[scope](); }
+    function segmented(scope, key, options, current) {
+      return '<div class="segmented" role="group">' + options.map((o) => '<button type="button" class="' + (current === o[0] ? 'active' : '') + '" aria-pressed="' + (current === o[0]) + '" onclick="setF(\'' + scope + '\',\'' + key + '\',\'' + o[0] + '\');syncSeg(this)">' + esc(o[1]) + (o[2] != null ? ' <span class="count">' + o[2] + '</span>' : '') + '</button>').join('') + '</div>';
+    }
+    function syncSeg(el) { $$('button', el.parentNode).forEach((b) => { const on = b === el; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on); }); }
+
+    /* ---------- 4. Layout ---------- */
+    function brandSquare(size) {
+      return '<div class="brand-square" style="width:' + size + 'px;height:' + size + 'px">' + ico('book', Math.round(size * 0.57)) + '</div>';
+    }
+
+    function authLayout(inner) {
+      return '<div class="auth-wrap">' +
+        '<aside class="auth-aside"><div class="row" style="margin-bottom:28px">' + brandSquare(32) + '<span class="brand-title" style="font-size:18px">Acervo Digital</span></div>' +
+        '<div style="width:40px;height:40px;background:var(--accent-soft);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--accent-text);margin-bottom:16px">' + ico('book', 22) + '</div>' +
+        '<h2 style="font-size:20px;font-weight:700;margin-bottom:8px">Biblioteca digital para leitores e bibliotecários</h2>' +
+        '<p class="muted" style="font-size:13px;margin-bottom:16px;max-width:420px">Consulte o acervo, reserve com um clique e acompanhe prazos, multas e avisos em um só lugar.</p>' +
+        '<ul class="feature-list">' +
+        ['Catálogo com busca, filtros e disponibilidade em tempo real', 'Reserva com ticket para retirada no balcão', 'Avisos automáticos de vencimento e de multas', 'Painel de circulação e logs do processamento diário para a equipe'].map((t) => '<li><span style="color:var(--success)">' + ico('check', 15) + '</span><span>' + t + '</span></li>').join('') +
+        '</ul></aside>' +
+        '<main id="main" class="auth-main" tabindex="-1"><div class="auth-card screen-fade">' + inner + '</div></main></div>';
+    }
+
+    function navGroups() {
+      const pend = myFines().filter((f) => f.status === 'pendente').length;
+      const un = unreadCount();
+      if (isLib()) {
+        return [
+          { label: 'Visão geral', items: [{ p: '/dashboard', i: 'dashboard', t: 'Dashboard' }] },
+          { label: 'Acervo', items: [{ p: '/acervo', i: 'library', t: 'Catálogo' }, { p: '/acervo/novo', i: 'plus', t: 'Cadastrar livro' }] },
+          { label: 'Operação', items: [{ p: '/circulacao', i: 'ticket', t: 'Retirada e devolução' }, { p: '/locacoes', i: 'clock', t: 'Locações' }, { p: '/multas', i: 'dollar', t: 'Multas' }, { p: '/leitores', i: 'users', t: 'Leitores' }] },
+          { label: 'Administração', items: [{ p: '/admin/logs', i: 'terminal', t: 'Logs do job diário' }] }
+        ];
+      }
+      return [
+        { label: 'Visão geral', items: [{ p: '/dashboard', i: 'dashboard', t: 'Dashboard' }] },
+        { label: 'Biblioteca', items: [{ p: '/acervo', i: 'library', t: 'Catálogo' }] },
+        { label: 'Minha área', items: [
+          { p: '/locacoes', i: 'clock', t: 'Minhas locações' }, { p: '/multas', i: 'dollar', t: 'Minhas multas', n: pend },
+          { p: '/avaliacoes', i: 'star', t: 'Minhas avaliações' }, { p: '/favoritos', i: 'heart', t: 'Favoritos' },
+          { p: '/desejos', i: 'bookmark', t: 'Lista de desejos' }, { p: '/notificacoes', i: 'bell', t: 'Notificações', n: un }
+        ] }
+      ];
+    }
+
+    function appShell(content, navPath) {
+      const u = me();
+      const groups = navGroups();
+      let best = null, bestLen = -1;
+      groups.forEach((g) => g.items.forEach((it) => { if ((navPath === it.p || navPath.indexOf(it.p + '/') === 0) && it.p.length > bestLen) { best = it.p; bestLen = it.p.length; } }));
+      const menu = groups.map((g) => '<div class="sidebar-label">' + esc(g.label) + '</div>' + g.items.map((it) =>
+        '<a class="sidebar-btn' + (it.p === best ? ' active' : '') + '" href="#' + it.p + '" title="' + esc(it.t) + '"' + (it.p === best ? ' aria-current="page"' : '') + ' onclick="closeSidebar()">' +
+        ico(it.i, 16) + '<span class="lbl">' + esc(it.t) + '</span>' + (it.n ? '<span class="nav-count" aria-label="' + it.n + ' pendentes">' + it.n + '</span>' : '') + '</a>').join('')).join('');
+      const roleLabel = isLib() ? 'Bibliotecária' : 'Leitor';
+      return '<div class="app-shell">' +
+        '<div class="sidebar-scrim" id="scrim" onclick="closeSidebar()"></div>' +
+        '<aside class="app-sidebar" id="sidebar" aria-label="Menu lateral"><div>' +
+        '<a class="sidebar-brand" href="#/dashboard" title="Acervo Digital">' + brandSquare(24) + '<span class="brand-title">Acervo Digital</span></a>' +
+        '<nav class="sidebar-menu" aria-label="Navegação principal">' + menu + '</nav></div>' +
+        '<div class="sidebar-footer"><div class="user-avatar" aria-hidden="true">' + esc(nameInitials(u.name)) + '</div><div class="who-txt" style="line-height:1.2"><span style="font-size:12px;font-weight:600;display:block">' + esc(u.name) + '</span><span style="font-size:11px;color:var(--muted-strong)">' + roleLabel + '</span></div></div></aside>' +
+        '<div class="main-col"><header class="topbar">' +
+        '<button type="button" class="icon-btn menu-toggle" aria-label="Abrir menu" onclick="openSidebar()">' + ico('menu', 18) + '</button>' +
+        '<form class="topbar-search" role="search" onsubmit="return topSearch(event)"><div class="input-search-wrap">' + ico('search', 14) +
+        '<input id="topSearch" class="input-minimal" type="search" aria-label="Buscar livros" placeholder="Buscar livros pelo título..." autocomplete="off"></div></form>' +
+        '<div class="topbar-actions">' +
+        (isLib() ? '' : '<a class="icon-btn" href="#/notificacoes" aria-label="Notificações' + (unreadCount() ? ', ' + unreadCount() + ' não lidas' : '') + '">' + ico('bell', 18) + (unreadCount() ? '<span class="dot-count">' + unreadCount() + '</span>' : '') + '</a>') +
+        '<button type="button" class="user-chip" id="userBtn" aria-haspopup="true" aria-expanded="false" onclick="toggleUserMenu(event)"><div class="user-avatar" style="width:28px;height:28px" aria-hidden="true">' + esc(nameInitials(u.name)) + '</div><div class="who"><b>' + esc(u.name.split(' ')[0]) + '</b><span>' + roleLabel + '</span></div>' + ico('chevR', 12) + '</button>' +
+        '</div>' +
+        '<div class="menu-pop hidden" id="userMenu" role="menu"><div class="menu-head"><b>' + esc(u.name) + '</b><span>' + esc(u.email) + '</span></div>' +
+        '<button type="button" class="menu-item" role="menuitem" onclick="switchProfile()">' + ico('swap', 15) + (isLib() ? 'Ver como Leitor (demonstração)' : 'Ver como Bibliotecário (demonstração)') + '</button>' +
+        '<button type="button" class="menu-item" role="menuitem" onclick="askResetDemo()">' + ico('refresh', 15) + 'Restaurar dados de demonstração</button>' +
+        '<button type="button" class="menu-item" role="menuitem" onclick="logout()" style="color:var(--destructive-text)">' + ico('logout', 15) + 'Sair</button></div>' +
+        '</header><main id="main" class="content" tabindex="-1"><div class="screen-fade">' + content + '</div></main></div></div>';
+    }
+
+    function openSidebar() { const s = $('#sidebar'), c = $('#scrim'); if (s) s.classList.add('open'); if (c) c.classList.add('open'); }
+    function closeSidebar() { const s = $('#sidebar'), c = $('#scrim'); if (s) s.classList.remove('open'); if (c) c.classList.remove('open'); }
+    function toggleUserMenu(e) {
+      if (e) e.stopPropagation();
+      const m = $('#userMenu'), b = $('#userBtn'); if (!m) return;
+      const open = m.classList.contains('hidden');
+      m.classList.toggle('hidden', !open); b.setAttribute('aria-expanded', open);
+    }
+    document.addEventListener('click', (e) => {
+      const m = $('#userMenu'); if (m && !m.classList.contains('hidden') && !m.contains(e.target)) { m.classList.add('hidden'); const b = $('#userBtn'); if (b) b.setAttribute('aria-expanded', 'false'); }
+    });
+    function topSearch(e) {
+      e.preventDefault();
+      const q = $('#topSearch').value.trim();
+      ui.f.catalog = Object.assign(ui.f.catalog, { title: q, author: '', genre: '', releaseDate: '', page: 1 });
+      go('/acervo');
+      return false;
+    }
+
+    /* ---------- Sessão ---------- */
+    function startSession(userId) { sessionUserId = userId; saveSession(userId); ui.f = defaultFilters(); }
+    function logout() {
+      closeModal(); startSession(null);
+      ui.flash = { type: 'success', text: 'Você saiu do sistema com segurança.' };
+      go('/login');
+    }
+    function switchProfile() {
+      startSession(isLib() ? 'u1' : 'b1');
+      toast('Perfil alterado: ' + (isLib() ? 'Bibliotecário' : 'Leitor'));
+      if (location.hash === '#/dashboard') render(); else go('/dashboard');
+    }
+    function askResetDemo() {
+      const m = $('#userMenu'); if (m) m.classList.add('hidden');
+      confirmModal({
+        title: 'Restaurar dados de demonstração', icon: 'refresh',
+        html: '<p>Isso descarta tudo o que foi alterado neste navegador (reservas, avaliações, contas criadas etc.) e volta aos dados originais.</p>',
+        confirmLabel: 'Restaurar',
+        onConfirm: () => { const was = me() && me().role; resetDb(); startSession(was === 'bibliotecario' ? 'b1' : 'u1'); toast('Dados restaurados'); render(); }
+      });
+    }
+
+    /* ---------- 6. Roteador por hash ---------- */
+    function go(path) { if (location.hash === '#' + path) render(); else location.hash = '#' + path; }
+    function parseHash() {
+      const raw = (location.hash || '').replace(/^#/, '') || '/';
+      const i = raw.indexOf('?');
+      const path = (i >= 0 ? raw.slice(0, i) : raw).replace(/\/+$/, '') || '/';
+      const query = {};
+      if (i >= 0) new URLSearchParams(raw.slice(i + 1)).forEach((v, k) => { query[k] = v; });
+      return { path, query };
+    }
+    function matchRoute(path) {
+      const segs = path.split('/').filter(Boolean);
+      for (const r of ROUTES) {
+        const rs = r.p.split('/').filter(Boolean);
+        if (rs.length !== segs.length) continue;
+        const params = {}; let ok = true;
+        for (let i = 0; i < rs.length; i++) {
+          if (rs[i][0] === ':') params[rs[i].slice(1)] = decodeURIComponent(segs[i]);
+          else if (rs[i] !== segs[i]) { ok = false; break; }
+        }
+        if (ok) return { def: r, params };
+      }
+      return null;
+    }
+    function viewForbidden() {
+      return emptyState('shield', 'Acesso restrito', 'Esta área é exclusiva para ' + (isLib() ? 'leitores' : 'bibliotecários') + '. Use o menu lateral para voltar às suas funções.', linkBtn('Ir para o dashboard', '#/dashboard', { cls: 'btn-primary-solid' }));
+    }
+    function viewNotFound() {
+      return emptyState('search', 'Página não encontrada', 'O endereço informado não existe ou foi movido.', linkBtn('Voltar ao início', '#/dashboard', { cls: 'btn-primary-solid' }));
+    }
+    function render(keep) {
+      if (keep !== true) closeModal();
+      const { path, query } = parseHash();
+      if (path === '/') { go(me() ? '/dashboard' : '/login'); return; }
+      const hit = matchRoute(path);
+      const app = $('#app');
+      if (!hit) {
+        if (!me()) { go('/login'); return; }
+        app.innerHTML = appShell(viewNotFound(), path); document.title = 'Página não encontrada | Acervo Digital'; return;
+      }
+      const def = hit.def;
+      if (def.public && me()) { go('/dashboard'); return; }
+      if (!def.public && !me()) { ui.next = path === '/login' ? null : '#' + path; go('/login'); return; }
+      if (def.role && me().role !== def.role) {
+        app.innerHTML = appShell(viewForbidden(), '/dashboard'); document.title = 'Acesso restrito | Acervo Digital'; return;
+      }
+      const html = def.render(hit.params, query);
+      app.innerHTML = def.public ? authLayout(html) : appShell(html, def.nav || path);
+      document.title = (typeof def.title === 'function' ? def.title(hit.params) : def.title) + ' | Acervo Digital';
+      const main = $('#main');
+      if (keep === true) { window.scrollTo(0, ui.keepY || 0); return; }
+      window.scrollTo(0, 0);
+      if (def.after) def.after(hit.params, query); else if (main) main.focus({ preventScroll: true });
+    }
+    function softRender() { ui.keepY = window.scrollY; render(true); }
+    window.addEventListener('hashchange', () => render());
+
+    /* ---------- 5.1 Autenticação ---------- */
+    function viewLogin() {
+      const fl = ui.flash; ui.flash = null;
+      const pre = ui.prefill || ''; ui.prefill = '';
+      return '<h1>Entrar no Acervo Digital</h1><p class="page-sub" style="margin-bottom:20px">Acesse com o e-mail e a senha cadastrados.</p>' +
+        '<div id="authMsg" style="margin-bottom:12px">' + (fl ? alertBox(fl.type, '', esc(fl.text)) : '') + '</div>' +
+        '<form class="stack" novalidate onsubmit="return doLogin(event)">' +
+        fieldHtml({ id: 'email', label: 'E-mail', type: 'email', value: pre, placeholder: 'nome@dominio.com', autocomplete: 'username', required: true }) +
+        fieldHtml({ id: 'password', label: 'Senha', type: 'password', autocomplete: 'current-password', required: true }) +
+        '<button type="submit" class="btn-minimal btn-primary-solid btn-lg btn-block">Entrar</button>' +
+        '<div class="row"><div style="flex:1;height:1px;background:var(--border)"></div><span class="muted" style="font-size:11px">ou</span><div style="flex:1;height:1px;background:var(--border)"></div></div>' +
+        '<a class="btn-minimal btn-lg btn-block" href="#/cadastro">Criar conta</a></form>' +
+        '<div class="demo-box" style="margin-top:20px"><b>Contas de demonstração</b><div class="muted" style="margin-top:2px">Escolha um perfil para preencher o formulário.</div>' +
+        '<div class="row wrap" style="margin-top:6px"><button type="button" class="btn-minimal btn-sm" onclick="fillDemo(\'leitor@acervo.com\',\'senha12345\')">' + ico('user', 13) + 'Leitor</button>' +
+        '<button type="button" class="btn-minimal btn-sm" onclick="fillDemo(\'bibliotecario@acervo.com\',\'senha12345\')">' + ico('shield', 13) + 'Bibliotecário</button></div></div>';
+    }
+    function fillDemo(e, p) { $('#email').value = e; $('#password').value = p; clearErrs(['email', 'password']); $('#authMsg').innerHTML = ''; $('#password').focus(); }
+    function doLogin(ev) {
+      ev.preventDefault();
+      clearErrs(['email', 'password']);
+      const email = val('email').toLowerCase(), pw = val('password', true), msg = $('#authMsg');
+      let bad = false;
+      if (!email) { setErr('email', 'Informe seu e-mail.'); bad = true; }
+      else if (!isEmail(email)) { setErr('email', 'Digite um e-mail válido, como nome@dominio.com.'); bad = true; }
+      if (!pw) { setErr('password', 'Informe sua senha.'); bad = true; }
+      if (bad) { msg.innerHTML = alertBox('error', 'Não foi possível entrar.', 'Corrija os campos destacados.'); focusFirstError(); return false; }
+      const u = db.users.find((x) => x.email.toLowerCase() === email && x.password === pw);
+      if (!u) { msg.innerHTML = alertBox('error', 'E-mail ou senha incorretos.', 'Confira o e-mail e a senha digitados.'); $('#password').value = ''; $('#password').focus(); return false; }
+      startSession(u.id);
+      msg.innerHTML = alertBox('success', 'Login realizado.', 'Redirecionando para ' + (u.role === 'bibliotecario' ? 'o painel do bibliotecário' : 'a sua área de leitura') + '...');
+      setTimeout(() => { const nx = ui.next; ui.next = null; go(nx && nx.indexOf('/login') < 0 ? nx.replace(/^#/, '') : '/dashboard'); }, 700);
+      return false;
+    }
+
+    function viewRegister() {
+      return '<h1>Criar conta</h1><p class="page-sub" style="margin-bottom:20px">Cadastre-se como leitor para reservar livros e acompanhar suas locações.</p>' +
+        '<div id="authMsg" style="margin-bottom:12px"></div>' +
+        '<form class="stack" novalidate onsubmit="return doRegister(event)">' +
+        fieldHtml({ id: 'name', label: 'Nome completo', value: '', placeholder: 'Nome e sobrenome', autocomplete: 'name', required: true, attrs: 'maxlength="150" onblur="regBlur(\'name\')"' }) +
+        fieldHtml({ id: 'email', label: 'E-mail', type: 'email', placeholder: 'nome@dominio.com', autocomplete: 'email', required: true, attrs: 'onblur="regBlur(\'email\')"' }) +
+        fieldHtml({ id: 'password', label: 'Senha', type: 'password', autocomplete: 'new-password', required: true, attrs: 'oninput="pwRules()" onblur="regBlur(\'password\')"' }) +
+        '<ul class="checklist" id="pwRules" aria-label="Requisitos da senha"><li data-r="len">' + ico('check', 12) + 'Pelo menos 8 caracteres</li></ul>' +
+        fieldHtml({ id: 'confirm', label: 'Confirmar senha', type: 'password', autocomplete: 'new-password', required: true, attrs: 'onblur="regBlur(\'confirm\')"' }) +
+        '<button type="submit" class="btn-minimal btn-primary-solid btn-lg btn-block">Criar conta</button>' +
+        '<a class="btn-minimal btn-ghost btn-block" href="#/login">' + ico('arrowL', 14) + 'Voltar para o login</a></form>';
+    }
+    function pwRules() {
+      const v = val('password', true);
+      $$('#pwRules li').forEach((li) => li.classList.toggle('ok', v.length >= 8));
+    }
+    function regCheck(id) {
+      const v = (id === 'password' || id === 'confirm') ? val(id, true) : val(id);
+      if (id === 'name' && !v) return 'Informe seu nome.';
+      if (id === 'email') {
+        if (!v) return 'Informe seu e-mail.';
+        if (!isEmail(v)) return 'Digite um e-mail válido, como nome@dominio.com.';
+        if (db.users.some((u) => u.email.toLowerCase() === v.toLowerCase())) return 'Este e-mail já está cadastrado. Entre com sua senha.';
+      }
+      if (id === 'password') {
+        if (!v) return 'Crie uma senha.';
+        if (v.length < 8) return 'A senha deve ter pelo menos 8 caracteres.';
+      }
+      if (id === 'confirm') { if (!v) return 'Repita a senha.'; if (v !== val('password', true)) return 'As senhas não conferem.'; }
+      return '';
+    }
+    function regBlur(id) { if (val(id, id === 'password' || id === 'confirm') || $('#f-' + id).classList.contains('has-error')) setErr(id, regCheck(id)); }
+    function doRegister(ev) {
+      ev.preventDefault();
+      const ids = ['name', 'email', 'password', 'confirm']; let n = 0;
+      ids.forEach((id) => { const m = regCheck(id); setErr(id, m); if (m) n++; });
+      const msg = $('#authMsg');
+      if (n) { msg.innerHTML = alertBox('error', 'Revise o formulário.', n === 1 ? 'Há 1 campo com problema.' : 'Há ' + n + ' campos com problema.'); focusFirstError(); return false; }
+      const u = { id: 'u' + (++db.seq.user), name: val('name'), email: val('email').toLowerCase(), password: val('password', true), role: 'leitor' };
+      db.users.push(u); saveDb();
+      ui.flash = { type: 'success', text: 'Conta criada com sucesso! Entre com seu e-mail e senha.' };
+      ui.prefill = u.email;
+      go('/login');
+      return false;
+    }
+
+    const focusEmail = () => { const e = $('#email') || $('#name'); if (e) e.focus(); };
+
+    /* ---------- 5.2 Dashboard ---------- */
+    function shortcutLink(icon, title, sub, href) {
+      return '<a class="shortcut" href="' + href + '" style="text-decoration:none;color:inherit"><span class="sc-icon">' + ico(icon, 18) + '</span><span class="grow"><b>' + esc(title) + '</b><span>' + esc(sub) + '</span></span>' + ico('chevR', 16) + '</a>';
+    }
+    function jobKpi(href) {
+      const r = lastRun(), ok = r.status === 'success';
+      return kpi('Processamento diário', '<span style="font-size:18px;color:var(' + (ok ? '--success-text' : '--destructive') + ')">' + (ok ? 'Sucesso' : 'Falha') + '</span>',
+        friendly(r.startedAt) + ' · próxima 18/10 às 03:00', { cls: ok ? 'ok' : 'danger', icon: 'activity', href });
+    }
+    function notifPreview(list, limit) {
+      const items = list.slice(0, limit);
+      if (!items.length) return emptyState('bell', 'Nenhuma notificação', 'Avisos de vencimento e de multas aparecem aqui.');
+      return items.map((n) => '<div class="notif ' + (n.read ? '' : 'unread') + '"><div class="notif-icon ' + NOTIF_TYPES[n.type][3] + '">' + ico(NOTIF_TYPES[n.type][2], 16) + '</div><div class="grow"><div class="notif-title">' + esc(NOTIF_TYPES[n.type][1]) + '</div><div class="notif-text">' + esc(n.text) + '</div><div class="notif-time">' + friendly(n.at) + '</div></div></div>').join('');
+    }
+    function opsList(limit) {
+      const ops = db.ops.slice(0, limit);
+      if (!ops.length) return emptyState('clipboard', 'Nenhuma operação ainda', 'As retiradas e devoluções registradas aparecem aqui.');
+      return ops.map((o) => { const l = loanById(o.loanId), b = loanBook(l); return '<div class="notif"><div class="notif-icon ' + (o.type === 'retirada' ? 'reserva' : 'processo') + '">' + ico(o.type === 'retirada' ? 'arrowR' : 'arrowL', 16) + '</div><div class="grow"><div class="notif-title">' + (o.type === 'retirada' ? 'Retirada' : 'Devolução') + ' <span class="font-mono muted" style="font-weight:400">' + l.ticket + '</span></div><div class="notif-text">' + esc(b.title) + ' · ' + esc(userById(l.userId).name) + '</div><div class="notif-time">' + friendly(o.at) + '</div></div></div>'; }).join('');
+    }
+    function barChart(data) {
+      const max = Math.max.apply(null, data.map((d) => d[1]));
+      return '<div class="css-bar-chart" role="img" aria-label="Retiradas e devoluções nos últimos 7 dias: ' + data.map((d) => d[0] + ' ' + d[1]).join(', ') + '">' +
+        data.map((d) => '<div class="css-bar-col"><span class="css-bar-label">' + d[1] + '</span><div class="css-bar-fill" style="height:' + Math.round(d[1] / max * 78) + '%"></div></div>').join('') + '</div>' +
+        '<div style="display:flex;gap:12px;margin-top:6px">' + data.map((d) => '<span class="css-bar-label" style="flex:1;text-align:center">' + d[0] + '</span>').join('') + '</div>';
+    }
+
+    function viewDashboard() { return isLib() ? dashboardLib() : dashboardReader(); }
+
+    function dashboardReader() {
+      const u = me(), loans = myLoans();
+      const active = loans.filter((l) => l.status === 'ativa' || l.status === 'atrasada');
+      const late = loans.filter((l) => l.status === 'atrasada');
+      const reserved = loans.filter((l) => l.status === 'reservada');
+      const pf = myFines().filter((f) => f.status === 'pendente');
+      const total = db.books.reduce((s, b) => s + b.stock, 0);
+      const notifs = myNotifs();
+      let alerts = '';
+      if (late.length || pf.length) {
+        const parts = [];
+        if (late.length) parts.push(plural(late.length, 'livro atrasado', 'livros atrasados'));
+        if (pf.length) parts.push('<b>' + money(sumFines(pf)) + '</b> em multas pendentes');
+        alerts = alertBox('error', 'Atenção:', 'você tem ' + parts.join(' e ') + '.', '<a class="btn-minimal btn-sm" href="#/' + (pf.length ? 'multas' : 'locacoes') + '">' + (pf.length ? 'Ver multas' : 'Ver locações') + '</a>');
+      } else if (reserved.length) {
+        alerts = alertBox('info', 'Lembrete:', 'você tem ' + plural(reserved.length, 'reserva aguardando retirada', 'reservas aguardando retirada') + ' no balcão.', '<a class="btn-minimal btn-sm" href="#/locacoes">Ver locações</a>');
+      }
+      const due = active.concat(reserved).sort((a, b) => ((a.dueDate || '9999') > (b.dueDate || '9999') ? 1 : -1));
+      const rows = due.length ? '<div class="table-wrap"><table class="saas-table"><caption class="sr-only">Próximos prazos</caption><thead><tr><th scope="col">Livro</th><th scope="col">Situação</th><th scope="col">Prazo</th></tr></thead><tbody>' + due.map((l) => {
+        const b = loanBook(l);
+        return '<tr class="' + (l.status === 'atrasada' ? 'row-danger' : '') + '"><td><a href="#/acervo/' + b.id + '" style="color:inherit;text-decoration:none"><div class="cell-book">' + cover(b, 'sm') + '<div><div style="font-weight:600">' + esc(b.title) + '</div><div class="cell-sub">' + esc(b.author) + '</div></div></div></a></td><td>' + loanBadge(l.status) + '</td><td>' +
+          (l.status === 'reservada' ? '<div class="cell-sub">Aguardando retirada no balcão</div>' : '<div class="font-mono">' + fmtDate(l.dueDate) + '</div><div class="cell-sub">' + dueText(l.dueDate) + '</div>') + '</td></tr>';
+      }).join('') + '</tbody></table></div>' : emptyState('book', 'Nenhuma locação em andamento', 'Que tal explorar o catálogo e reservar o próximo livro?', linkBtn('Explorar catálogo', '#/acervo', { cls: 'btn-primary-solid', icon: 'search' }));
+      return pageHead('Olá, ' + esc(u.name.split(' ')[0]), 'Resumo da sua biblioteca em ' + fmtDate(HOJE), linkBtn('Explorar catálogo', '#/acervo', { cls: 'btn-primary-solid', icon: 'search' })) +
+        (alerts ? '<div style="margin-bottom:16px">' + alerts + '</div>' : '') +
+        '<div class="grid-kpi">' +
+        kpi('Livros no acervo', db.books.length, plural(total, 'exemplar disponível', 'exemplares disponíveis'), { icon: 'library', href: '#/acervo' }) +
+        kpi('Locações ativas', active.length, late.length ? late.length + ' atrasada(s) · ' + reserved.length + ' reserva(s)' : reserved.length + ' reserva(s) aguardando', { icon: 'clock', cls: late.length ? 'warn' : '', href: '#/locacoes' }) +
+        kpi('Multas pendentes', money(sumFines(pf)), plural(pf.length, 'multa em aberto', 'multas em aberto'), { icon: 'dollar', cls: pf.length ? 'danger' : 'ok', href: '#/multas' }) +
+        kpi('Notificações', unreadCount(), 'não lidas · ' + notifs.length + ' no total', { icon: 'bell', href: '#/notificacoes' }) + '</div>' +
+        '<div class="grid-main-side"><section class="card-flat flush" aria-labelledby="h-prazos"><div class="card-head"><h2 class="section-title" id="h-prazos">Próximos prazos</h2><a href="#/locacoes" style="font-size:12px">Ver todas</a></div>' + rows + '</section>' +
+        '<div class="stack"><section class="card-flat" aria-labelledby="h-atalhos"><h2 class="section-title" id="h-atalhos" style="margin-bottom:10px">Atalhos</h2><div class="stack" style="gap:8px">' +
+        shortcutLink('library', 'Explorar catálogo', 'Busque por título, autor ou gênero', '#/acervo') + shortcutLink('bookmark', 'Lista de desejos', plural(wishes().length, 'livro', 'livros') + ' para ler depois', '#/desejos') +
+        shortcutLink('star', 'Minhas avaliações', plural(db.reviews.filter((r) => r.userId === u.id).length, 'avaliação feita', 'avaliações feitas'), '#/avaliacoes') + '</div></section>' +
+        '<section class="card-flat flush" aria-labelledby="h-notif"><div class="card-head"><h2 class="section-title" id="h-notif">Notificações recentes</h2><a href="#/notificacoes" style="font-size:12px">Abrir central</a></div>' + notifPreview(notifs, 3) + '</section></div></div>';
+    }
+
+    function dashboardLib() {
+      const loans = db.loans, open = loans.filter((l) => l.status === 'ativa' || l.status === 'atrasada');
+      const late = loans.filter((l) => l.status === 'atrasada'), reserved = loans.filter((l) => l.status === 'reservada');
+      const pf = pendingFines(), avail = db.books.reduce((s, b) => s + b.stock, 0);
+      const r = lastRun();
+      let alerts = '';
+      if (r.status === 'failed') alerts += alertBox('error', 'O último processamento diário falhou.', esc(r.error || ''), '<a class="btn-minimal btn-sm" href="#/admin/logs/' + r.id + '">Ver detalhes</a>');
+      if (late.length) alerts += alertBox('warning', 'Atrasos:', plural(late.length, 'locação atrasada', 'locações atrasadas') + ' em acompanhamento.', '<a class="btn-minimal btn-sm" href="#/locacoes">Consultar</a>');
+      const lateRows = late.length ? '<div class="table-wrap"><table class="saas-table"><caption class="sr-only">Atrasos para acompanhar</caption><thead><tr><th scope="col">Livro</th><th scope="col">Leitor</th><th scope="col">Atraso</th><th scope="col" class="text-right">Multa</th></tr></thead><tbody>' + late.map((l) => {
+        const b = loanBook(l), d = diffDays(HOJE, l.dueDate), u = userById(l.userId);
+        return '<tr class="row-danger"><td><div style="font-weight:600">' + esc(b.title) + '</div><div class="cell-sub font-mono">' + l.ticket + '</div></td><td><a href="#/leitores/' + u.id + '">' + esc(u.name) + '</a></td><td><span class="status-badge badge-atrasado font-mono">' + plural(d, 'dia', 'dias') + '</span></td><td class="text-right font-mono" style="font-weight:600;color:var(--destructive)">' + money(d * MULTA_DIA) + '</td></tr>';
+      }).join('') + '</tbody></table></div>' : emptyState('checkCircle', 'Sem atrasos', 'Nenhuma locação está atrasada neste momento.');
+      const resv = reserved.length ? reserved.map((l) => '<div class="notif"><div class="notif-icon reserva">' + ico('ticket', 16) + '</div><div class="grow"><div class="notif-title">' + esc(loanBook(l).title) + '</div><div class="notif-text">' + esc(userById(l.userId).name) + ' · <span class="font-mono">' + l.ticket + '</span></div><div class="notif-time">reservado em ' + fmtDate(l.reservedAt) + '</div></div></div>').join('') : emptyState('inbox', 'Nenhuma reserva pendente', 'Reservas aguardando retirada aparecem aqui.');
+      return pageHead('Painel do bibliotecário', 'Visão geral da operação em ' + fmtDate(HOJE),
+        linkBtn('Cadastrar livro', '#/acervo/novo', { cls: 'btn-primary-solid', icon: 'plus' }) + linkBtn('Retirada e devolução', '#/circulacao', { icon: 'ticket' }) + linkBtn('Logs do job', '#/admin/logs', { icon: 'terminal' })) +
+        (alerts ? '<div class="stack" style="margin-bottom:16px;gap:8px">' + alerts + '</div>' : '') +
+        '<div class="grid-kpi k5">' +
+        kpi('Livros no acervo', db.books.length, plural(avail, 'exemplar disponível', 'exemplares disponíveis'), { icon: 'library', href: '#/acervo' }) +
+        kpi('Locações ativas', open.length, plural(late.length, 'atrasada', 'atrasadas'), { icon: 'clock', cls: late.length ? 'warn' : '', href: '#/locacoes' }) +
+        kpi('Reservas', reserved.length, 'aguardando retirada', { icon: 'ticket', href: '#/locacoes' }) +
+        kpi('Multas pendentes', money(sumFines(pf)), plural(pf.length, 'multa em aberto', 'multas em aberto'), { icon: 'dollar', cls: pf.length ? 'danger' : 'ok', href: '#/multas' }) +
+        jobKpi('#/admin/logs') + '</div>' +
+        '<section aria-labelledby="h-rapido" style="margin-bottom:20px"><h2 class="section-title" id="h-rapido" style="margin-bottom:10px">Acesso rápido</h2><div class="grid-kpi" style="margin-bottom:0">' +
+        shortcutLink('plus', 'Cadastrar livro', 'Novo título no acervo', '#/acervo/novo') + shortcutLink('ticket', 'Retirada e devolução', 'Confirmar pelo código do ticket', '#/circulacao') +
+        shortcutLink('users', 'Leitores', 'Histórico de locações e multas', '#/leitores') + shortcutLink('terminal', 'Logs do job', 'Execuções do processamento diário', '#/admin/logs') + '</div></section>' +
+        '<div class="grid-main-side"><div class="stack"><section class="card-flat flush" aria-labelledby="h-atr"><div class="card-head"><h2 class="section-title" id="h-atr">Atrasos para acompanhar</h2><a href="#/locacoes" style="font-size:12px">Ver locações</a></div>' + lateRows + '</section>' +
+        '<section class="card-flat" aria-labelledby="h-circ"><div class="row between" style="margin-bottom:6px"><h2 class="section-title" id="h-circ">Circulação nos últimos 7 dias</h2><span class="muted" style="font-size:12px">retiradas + devoluções</span></div>' + barChart(db.circ7) + '</section></div>' +
+        '<div class="stack"><section class="card-flat flush" aria-labelledby="h-res"><div class="card-head"><h2 class="section-title" id="h-res">Reservas aguardando retirada</h2><a href="#/circulacao" style="font-size:12px">Registrar retirada</a></div>' + resv + '</section>' +
+        '<section class="card-flat flush" aria-labelledby="h-ops"><div class="card-head"><h2 class="section-title" id="h-ops">Últimas operações</h2></div>' + opsList(4) + '</section></div></div>';
+    }
+
+    /* ---------- 5.3 Acervo: catálogo ---------- */
+    /* Mesmos filtros e ordenações da API: title, author e genre ignoram maiúsculas e acentos */
+    function catalogFiltered() {
+      const f = ui.f.catalog;
+      const list = db.books.filter((b) => {
+        if (f.title && norm(b.title).indexOf(norm(f.title)) < 0) return false;
+        if (f.author && norm(b.author).indexOf(norm(f.author)) < 0) return false;
+        if (f.genre && norm(b.genre).indexOf(norm(f.genre)) < 0) return false;
+        if (f.releaseDate && b.pubDate !== f.releaseDate) return false;
+        return true;
+      });
+      const byTitle = (a, b) => a.title.localeCompare(b.title, 'pt-BR');
+      const cmp = {
+        title: byTitle,
+        rating: (a, b) => (ratingOf(b.id).avg - ratingOf(a.id).avg) || byTitle(a, b),
+        recent: (a, b) => (a.pubDate < b.pubDate ? 1 : a.pubDate > b.pubDate ? -1 : byTitle(a, b)),
+        stock: (a, b) => (b.stock - a.stock) || byTitle(a, b)
+      }[f.sort] || byTitle;
+      return list.sort(cmp);
+    }
+    function favBtn(b) {
+      const on = favs().indexOf(b.id) >= 0;
+      return '<button type="button" class="icon-btn sm ' + (on ? 'on-fav' : '') + '" aria-pressed="' + on + '" aria-label="' + (on ? 'Remover dos favoritos: ' : 'Favoritar: ') + esc(b.title) + '" title="' + (on ? 'Desfavoritar' : 'Favoritar') + '" onclick="toggleFav(\'' + b.id + '\')">' + ico('heart', 16, on ? 'currentColor' : 'none') + '</button>';
+    }
+    function wishBtn(b) {
+      const on = wishes().some((w) => w.bookId === b.id);
+      return '<button type="button" class="icon-btn sm ' + (on ? 'on-wish' : '') + '" aria-pressed="' + on + '" aria-label="' + (on ? 'Remover da lista de desejos: ' : 'Adicionar à lista de desejos: ') + esc(b.title) + '" title="' + (on ? 'Remover da lista de desejos' : 'Adicionar à lista de desejos') + '" onclick="toggleWish(\'' + b.id + '\')">' + ico('bookmark', 16, on ? 'currentColor' : 'none') + '</button>';
+    }
+    function stockText(b) { return plural(b.stock, 'exemplar disponível', 'exemplares disponíveis'); }
+
+    RESULTS.catalog = function () {
+      const f = ui.f.catalog, list = catalogFiltered(), pg = paginate(list, f.page);
+      if (!list.length) {
+        return emptyState('search', 'Nenhum livro encontrado', 'Não encontramos resultados para essa combinação de busca e filtros. Tente outros termos ou limpe os filtros.', btn('Limpar filtros', 'clearCatalogFilters()', { cls: 'btn-primary-solid' }));
+      }
+      let body;
+      if (f.view === 'grid') {
+        body = '<div style="padding:16px"><div class="grid-books">' + pg.items.map((b) => {
+          const rt = ratingOf(b.id);
+          return '<article class="book-card"><div><div class="row between" style="align-items:flex-start;margin-bottom:10px">' + cover(b, 'md') +
+            (isLib() ? '' : '<div class="row" style="gap:2px">' + favBtn(b) + wishBtn(b) + '</div>') + '</div>' +
+            '<h3><a href="#/acervo/' + b.id + '" style="color:inherit;text-decoration:none">' + esc(b.title) + '</a></h3><p class="author">' + esc(b.author) + '</p>' +
+            '<div class="meta"><span class="tag">' + esc(b.genre) + '</span>' + (rt.n ? '<span class="font-mono" style="font-size:11px;color:var(--warning-text);font-weight:500">★ ' + rt.avg.toFixed(1).replace('.', ',') + '</span>' : '') + '</div>' +
+            '<div class="stock-line">' + stockText(b) + '</div></div>' +
+            '<div class="foot">' + availBadge(b) + '<div class="row" style="gap:4px">' + (isLib() ? '<a class="icon-btn sm" href="#/acervo/' + b.id + '/editar" aria-label="Editar ' + esc(b.title) + '" title="Editar">' + ico('edit', 15) + '</a>' : '') +
+            '<a class="btn-minimal btn-sm" href="#/acervo/' + b.id + '">Ver detalhes</a></div></div></article>';
+        }).join('') + '</div></div>';
+      } else {
+        body = '<div class="table-wrap"><table class="saas-table"><caption class="sr-only">Livros do acervo</caption><thead><tr><th scope="col">Livro</th><th scope="col">Gênero</th><th scope="col">Lançamento</th><th scope="col">Estoque</th><th scope="col">Disponibilidade</th><th scope="col" class="text-right">Ações</th></tr></thead><tbody>' +
+          pg.items.map((b) => '<tr><td><div class="cell-book">' + cover(b, 'sm') + '<div><a href="#/acervo/' + b.id + '" style="font-weight:600;color:inherit;text-decoration:none">' + esc(b.title) + '</a><div class="cell-sub">' + esc(b.author) + '</div></div></div></td>' +
+            '<td>' + esc(b.genre) + '</td><td class="font-mono">' + fmtPub(b.pubDate) + '</td><td class="font-mono">' + stockText(b) + '</td><td>' + availBadge(b) + '</td>' +
+            '<td class="act"><a class="icon-btn sm" href="#/acervo/' + b.id + '" aria-label="Ver detalhes de ' + esc(b.title) + '" title="Ver detalhes">' + ico('eye', 15) + '</a>' +
+            (isLib() ? '<a class="icon-btn sm" href="#/acervo/' + b.id + '/editar" aria-label="Editar ' + esc(b.title) + '" title="Editar">' + ico('edit', 15) + '</a>' : favBtn(b) + wishBtn(b)) + '</td></tr>').join('') + '</tbody></table></div>';
+      }
+      return body + pagerHtml('catalog', pg);
+    };
+    function clearCatalogFilters() { ui.f.catalog = Object.assign(ui.f.catalog, { title: '', author: '', genre: '', releaseDate: '', sort: 'title', page: 1 }); render(); }
+
+    function viewCatalog(p, query) {
+      if (query && query.genre) ui.f.catalog.genre = query.genre;
+      const f = ui.f.catalog, n = catalogFiltered().length;
+      const genres = GENEROS.filter((g) => db.books.some((b) => b.genre === g));
+      return pageHead('Catálogo de livros', 'Mostrando <span class="font-mono">' + plural(n, 'título', 'títulos') + '</span> do acervo',
+        isLib() ? linkBtn('Cadastrar livro', '#/acervo/novo', { cls: 'btn-primary-solid', icon: 'plus' }) : '') +
+        '<section class="card-flat flush" aria-label="Catálogo"><form class="filter-bar" role="search" onsubmit="return false">' +
+        '<div class="form-field search"><label for="cat-title">Título</label><div class="input-search-wrap">' + ico('search', 14) + '<input id="cat-title" class="input-minimal" type="search" placeholder="Buscar pelo título" value="' + esc(f.title) + '" oninput="catText(\'title\', this.value)" autocomplete="off"></div></div>' +
+        '<div class="form-field"><label for="cat-author">Autor</label><input id="cat-author" class="input-minimal" type="search" placeholder="Nome do autor" value="' + esc(f.author) + '" oninput="catText(\'author\', this.value)" autocomplete="off"></div>' +
+        fieldHtml({ id: 'cat-genre', label: 'Gênero', tag: 'select', value: f.genre, placeholder: 'Todos', options: genres, attrs: 'onchange="setF(\'catalog\',\'genre\',this.value)"' }) +
+        fieldHtml({ id: 'cat-date', label: 'Data de lançamento', type: 'date', value: f.releaseDate, attrs: 'onchange="setF(\'catalog\',\'releaseDate\',this.value)"' }) +
+        fieldHtml({ id: 'cat-sort', label: 'Ordenar por', tag: 'select', value: f.sort, options: [['title', 'Título (A a Z)'], ['rating', 'Melhor avaliados'], ['recent', 'Lançamento mais recente'], ['stock', 'Mais exemplares disponíveis']], attrs: 'onchange="setF(\'catalog\',\'sort\',this.value)"' }) +
+        '<div class="form-field"><span class="lbl">Visualização</span><div class="segmented" role="group" aria-label="Modo de visualização"><button type="button" class="' + (f.view === 'grid' ? 'active' : '') + '" aria-pressed="' + (f.view === 'grid') + '" onclick="setF(\'catalog\',\'view\',\'grid\');syncSeg(this)">' + ico('grid', 14) + 'Grade</button><button type="button" class="' + (f.view === 'list' ? 'active' : '') + '" aria-pressed="' + (f.view === 'list') + '" onclick="setF(\'catalog\',\'view\',\'list\');syncSeg(this)">' + ico('list', 14) + 'Lista</button></div></div>' +
+        '<button type="button" class="btn-minimal btn-ghost" onclick="clearCatalogFilters()">Limpar</button></form>' +
+        '<div id="res-catalog" aria-live="polite">' + RESULTS.catalog() + '</div></section>';
+    }
+    const catText = debounce((key, v) => { setF('catalog', key, v); const n = catalogFiltered().length; const sub = $('.page-sub .font-mono'); if (sub) sub.textContent = plural(n, 'título', 'títulos'); }, 120);
+
+    /* ---------- Favoritos e desejos (ações compartilhadas) ---------- */
+    function toggleFav(id) {
+      const l = favs(), i = l.indexOf(id), b = bookById(id);
+      if (i >= 0) { l.splice(i, 1); toast('Removido dos favoritos'); } else { l.push(id); toast('"' + b.title + '" adicionado aos favoritos'); }
+      saveDb(); softRender();
+    }
+    function toggleWish(id) {
+      const l = wishes(), i = l.findIndex((w) => w.bookId === id);
+      if (i >= 0) { l.splice(i, 1); saveDb(); toast('Removido da lista de desejos'); softRender(); } else wishModal(id, false);
+    }
+    function wishModal(id, isEdit) {
+      const b = bookById(id), cur = wishes().find((w) => w.bookId === id) || { priority: 'Média', note: '' };
+      openModal({
+        title: isEdit ? 'Editar item da lista de desejos' : 'Adicionar à lista de desejos',
+        body: '<div class="row" style="margin-bottom:14px">' + cover(b, 'sm') + '<div><b>' + esc(b.title) + '</b><div class="muted">' + esc(b.author) + '</div></div></div><div class="stack">' +
+          fieldHtml({ id: 'w-priority', label: 'Prioridade', tag: 'select', value: cur.priority, options: PRIORIDADES, required: true }) +
+          fieldHtml({ id: 'w-note', label: 'Observação', tag: 'textarea', value: cur.note, placeholder: 'Ex.: indicação de um professor', hint: 'Opcional, até 140 caracteres.', attrs: 'maxlength="140"' }) + '</div>',
+        actions: '<button type="button" class="btn-minimal" onclick="closeModal()">Cancelar</button><button type="button" class="btn-minimal btn-primary-solid" onclick="saveWish(\'' + id + '\')">' + (isEdit ? 'Salvar alterações' : 'Adicionar') + '</button>'
+      });
+      $('#w-priority').focus();
+    }
+    function saveWish(id) {
+      const priority = val('w-priority'), note = val('w-note'), l = wishes(), cur = l.find((w) => w.bookId === id);
+      if (cur) { cur.priority = priority; cur.note = note; toast('Item atualizado'); } else { l.push({ bookId: id, priority, note }); toast('Adicionado à lista de desejos'); }
+      saveDb(); closeModal(); softRender();
+    }
+
+    /* ---------- 5.3 Acervo: detalhe do livro ---------- */
+    function reviewItem(r, mine) {
+      const u = userById(r.userId);
+      return '<article class="review"><div class="row between" style="align-items:flex-start;gap:12px"><div class="row" style="align-items:flex-start;gap:10px"><div class="user-avatar" aria-hidden="true">' + esc(nameInitials(u ? u.name : '?')) + '</div><div>' +
+        '<div style="font-weight:600;font-size:13px">' + esc(u ? u.name : 'Usuário removido') + (mine ? ' <span class="status-badge badge-info">Sua avaliação</span>' : '') + '</div>' +
+        '<div class="row wrap" style="gap:8px;margin-top:2px">' + stars(r.rating) + '<span class="tag">Exemplar: ' + esc(r.condition) + '</span><span class="muted font-mono" style="font-size:11px">' + fmtDate(r.date) + '</span></div></div></div>' +
+        (mine ? '<div class="row" style="gap:2px"><a class="icon-btn sm" href="#/acervo/' + r.bookId + '/avaliar" aria-label="Editar minha avaliação" title="Editar">' + ico('edit', 15) + '</a><button type="button" class="icon-btn sm danger" aria-label="Excluir minha avaliação" title="Excluir" onclick="askDeleteReview(\'' + r.id + '\')">' + ico('trash', 15) + '</button></div>' : '') + '</div>' +
+        (r.comment ? '<p style="margin:8px 0 0 42px;font-size:13px;color:var(--muted-strong)">' + esc(r.comment) + '</p>' : '') + '</article>';
+    }
+    function ratingSummary(bookId) {
+      const rs = db.reviews.filter((r) => r.bookId === bookId), rt = ratingOf(bookId);
+      let bars = '';
+      for (let s = 5; s >= 1; s--) {
+        const c = rs.filter((r) => r.rating === s).length, pct = rs.length ? Math.round(c / rs.length * 100) : 0;
+        bars += '<div class="dist-row"><span>' + s + ' ★</span><div class="meter" aria-hidden="true"><span style="width:' + pct + '%;background:var(--warning)"></span></div><span class="font-mono">' + c + '</span></div>';
+      }
+      return '<div style="min-width:180px"><div class="font-mono" style="font-size:32px;font-weight:700;line-height:1">' + (rt.n ? rt.avg.toFixed(1).replace('.', ',') : '0,0') + '</div>' + stars(rt.avg, 16) +
+        '<div class="muted" style="font-size:12px;margin:4px 0 10px">' + plural(rt.n, 'avaliação', 'avaliações') + '</div><div class="stack" style="gap:4px">' + bars + '</div></div>';
+    }
+
+    function viewBookDetail(p) {
+      const b = bookById(p.id);
+      if (!b) return emptyState('search', 'Livro não encontrado', 'O livro solicitado não existe mais no acervo.', linkBtn('Voltar ao catálogo', '#/acervo', { cls: 'btn-primary-solid' }));
+      const lib = isLib(), can = bookAvail(b);
+      const mineOpen = lib ? null : db.loans.find((l) => l.userId === sessionUserId && l.bookId === b.id && OPEN.indexOf(l.status) >= 0);
+      const mineRev = lib ? null : db.reviews.find((r) => r.bookId === b.id && r.userId === sessionUserId);
+      const reviewable = !lib && (mineRev || canReview(b.id));
+      const isFav = !lib && favs().indexOf(b.id) >= 0, isWish = !lib && wishes().some((w) => w.bookId === b.id);
+      const reviews = db.reviews.filter((r) => r.bookId === b.id).sort((x, y) => (x.date < y.date ? 1 : -1));
+      const rt = ratingOf(b.id);
+      let notices = '';
+      if (mineOpen) notices += alertBox('info', 'Você já tem este livro.', 'Situação: ' + loanBadge(mineOpen.status) + ' · ticket <span class="font-mono">' + mineOpen.ticket + '</span>.', '<a class="btn-minimal btn-sm" href="#/locacoes">Ver locação</a>');
+      let actions;
+      if (lib) {
+        actions = linkBtn('Editar livro', '#/acervo/' + b.id + '/editar', { cls: 'btn-primary-solid btn-lg', icon: 'edit' }) +
+          btn('Remover livro', 'askDeleteBook(\'' + b.id + '\')', { cls: 'btn-destructive-ghost btn-lg', icon: 'trash' });
+      } else {
+        actions = btn(mineOpen ? 'Você já possui este livro' : can ? 'Reservar' : 'Indisponível no momento', 'askReserve(\'' + b.id + '\')', { cls: 'btn-primary-solid btn-lg', icon: 'ticket', attrs: (can && !mineOpen) ? '' : 'disabled' }) +
+          btn(isFav ? 'Desfavoritar' : 'Favoritar', 'toggleFav(\'' + b.id + '\')', { cls: 'btn-lg', icon: 'heart', iconFill: isFav ? 'currentColor' : 'none', attrs: 'aria-pressed="' + isFav + '"' }) +
+          btn(isWish ? 'Remover da lista de desejos' : 'Adicionar à lista de desejos', 'toggleWish(\'' + b.id + '\')', { cls: 'btn-lg', icon: 'bookmark', iconFill: isWish ? 'currentColor' : 'none', attrs: 'aria-pressed="' + isWish + '"' }) +
+          (reviewable ? linkBtn(mineRev ? 'Editar minha avaliação' : 'Avaliar livro', '#/acervo/' + b.id + '/avaliar', { cls: 'btn-ghost btn-lg', icon: 'star' }) : '<p class="muted" style="font-size:12px">Você poderá avaliar este livro depois de retirá-lo no balcão.</p>');
+      }
+      return crumbs([['Catálogo', '#/acervo'], [b.title]]) +
+        '<div class="detail-layout"><aside><div style="margin-bottom:16px">' + cover(b, 'lg') + '</div><div class="stack" style="gap:8px">' + actions + '</div></aside>' +
+        '<div class="stack" style="gap:20px"><div><div class="row between" style="align-items:flex-start;gap:12px;flex-wrap:wrap"><div><h1 style="font-size:24px;font-weight:700;line-height:1.25">' + esc(b.title) + '</h1><p class="muted" style="font-size:14px;margin:2px 0 0">' + esc(b.author) + '</p></div>' +
+        '<div class="row wrap">' + availBadge(b, true) + '</div></div>' +
+        '<div class="info-grid"><div><span class="k">Gênero</span><span class="v">' + esc(b.genre) + '</span></div><div><span class="k">Lançamento</span><span class="v">' + fmtPub(b.pubDate) + '</span></div>' +
+        '<div><span class="k">Disponíveis</span><span class="v font-mono">' + stockText(b) + '</span></div><div><span class="k">Nota média</span><span class="v">' + (rt.n ? rt.avg.toFixed(1).replace('.', ',') + ' (' + rt.n + ')' : 'Sem notas') + '</span></div></div></div>' +
+        (notices ? '<div class="stack" style="gap:8px">' + notices + '</div>' : '') +
+        '<section aria-labelledby="h-sin"><h2 class="section-title" id="h-sin" style="margin-bottom:6px">Sinopse</h2><p style="font-size:13.5px;line-height:1.6;color:var(--muted-strong)">' + esc(b.synopsis || 'Sem sinopse cadastrada.') + '</p></section>' +
+        '<section class="card-flat" aria-labelledby="h-av"><h2 class="section-title" id="h-av" style="margin-bottom:12px">Avaliações e comentários</h2><div class="row" style="align-items:flex-start;gap:28px;flex-wrap:wrap">' + ratingSummary(b.id) +
+        '<div class="grow" style="min-width:260px">' + (reviews.length ? reviews.map((r) => reviewItem(r, r.userId === sessionUserId)).join('') : emptyState('star', 'Ainda sem avaliações', lib ? 'Nenhum leitor avaliou este livro até agora.' : 'Quem já retirou este livro pode compartilhar a opinião aqui.', reviewable ? linkBtn('Avaliar livro', '#/acervo/' + b.id + '/avaliar', { cls: 'btn-primary-solid', icon: 'star' }) : '')) + '</div></div></section></div></div>';
+    }
+    function askDeleteBook(id) {
+      const b = bookById(id);
+      confirmModal({
+        title: 'Remover livro', icon: 'trash', danger: true, confirmLabel: 'Remover livro',
+        html: '<p>Deseja remover <b>' + esc(b.title) + '</b> do acervo?</p><p class="muted" style="margin-top:6px">Os favoritos, itens de lista de desejos e avaliações deste livro também serão apagados. Locações encerradas continuam no histórico. Não é possível remover um livro com reservas ou locações em aberto.</p>',
+        onConfirm: () => { const r = deleteBook(id); if (!r.ok) { toast(r.error, 'error'); return; } toast('Livro removido do acervo'); go('/acervo'); }
+      });
+    }
+
+    /* ---------- Reserva ---------- */
+    function askReserve(id) {
+      const b = bookById(id);
+      confirmModal({
+        title: 'Reservar livro', icon: 'ticket', confirmLabel: 'Confirmar reserva',
+        html: '<p style="margin-bottom:8px"><b>' + esc(b.title) + '</b><br><span class="muted">' + esc(b.author) + '</span></p><ul style="list-style:disc;padding-left:18px;display:flex;flex-direction:column;gap:4px;color:var(--muted-strong)"><li>Um ticket será gerado para você retirar o livro no balcão.</li><li>Após a retirada, o prazo de devolução é de <b>' + PRAZO_DIAS + ' dias</b>.</li><li>Atraso gera multa de <b>' + money(MULTA_DIA) + ' por dia</b>, calculada pelo processamento diário.</li><li>Se o livro estiver na sua lista de desejos, ele sai de lá.</li></ul>',
+        onConfirm: () => {
+          const r = createReservation(sessionUserId, id);
+          if (!r.ok) { toast(r.error, 'error'); softRender(); return; }
+          openModal({
+            title: 'Reserva confirmada',
+            body: alertBox('success', '', 'Reserva de <b>' + esc(b.title) + '</b> realizada com sucesso.') + '<p class="muted" style="margin:12px 0 8px">Apresente este ticket no balcão para retirar o livro:</p><div class="ticket-code" aria-label="Ticket ' + r.loan.ticket + '">' + r.loan.ticket + '</div>',
+            actions: '<button type="button" class="btn-minimal" onclick="closeModal()">Continuar navegando</button><a class="btn-minimal btn-primary-solid" href="#/locacoes" onclick="closeModal()">Ver minhas locações</a>'
+          });
+          softRender();
+        }
+      });
+    }
+
+    /* ---------- 5.3 Acervo: cadastro e edição de livro (bibliotecário) ---------- */
+    function coverPreviewHtml(b, draft) {
+      const src = draft === undefined ? (b && b.cover) : draft;
+      const label = (b && b.title) || val('bk-title') || 'Capa';
+      return '<div class="cover-box cover-md" style="width:84px;height:112px;font-size:22px">' + (src ? '<img src="' + src + '" alt="Prévia da capa">' : esc(initials(label))) + '</div>';
+    }
+    function viewBookForm(p) {
+      const editing = !!p.id, b = editing ? bookById(p.id) : null;
+      if (editing && !b) return emptyState('search', 'Livro não encontrado', 'O livro que você tentou editar não existe.', linkBtn('Voltar ao catálogo', '#/acervo', { cls: 'btn-primary-solid' }));
+      ui.coverDraft = undefined; ui.editId = editing ? b.id : null;
+      const v = b || { title: '', author: '', genre: '', pubDate: '', stock: 1, synopsis: '' };
+      return crumbs([['Catálogo', '#/acervo'], editing ? [b.title, '#/acervo/' + b.id] : null, [editing ? 'Editar' : 'Cadastrar livro']].filter(Boolean)) +
+        pageHead(editing ? 'Editar livro' : 'Cadastrar livro', editing ? 'Atualize capa, estoque e demais atributos de <b>' + esc(b.title) + '</b>.' : 'Preencha os dados do novo título. Campos com <span class="req">*</span> são obrigatórios.') +
+        '<form class="card-flat" novalidate onsubmit="return saveBook(event)" style="max-width:860px">' +
+        '<div id="formMsg" style="margin-bottom:12px"></div>' +
+        '<div class="upload-drop" style="margin-bottom:20px"><div id="coverPreview">' + coverPreviewHtml(b, undefined) + '</div><div class="grow"><div class="lbl" style="font-weight:600;font-size:13px">Capa do livro <span class="muted" style="font-weight:400">(opcional)</span></div>' +
+        '<p class="muted" style="font-size:12px;margin:2px 0 8px">Imagem de até 5 MB. A API reduz para no máximo 800 px e converte para WebP. Sem imagem, o sistema usa as iniciais do título.</p><div class="row wrap">' +
+        '<label class="btn-minimal btn-sm" for="bk-cover" style="cursor:pointer">' + ico('image', 14) + (editing && b.cover ? 'Trocar imagem' : 'Escolher imagem') + '</label><input id="bk-cover" type="file" accept="image/*" class="sr-only" onchange="onCoverPick(this)">' +
+        '<button type="button" class="btn-minimal btn-ghost btn-sm" onclick="removeCover()">Remover capa</button></div><span class="error-msg" id="bk-cover-err" role="alert" style="color:var(--destructive-text);font-size:11.5px;display:block;margin-top:4px"></span></div></div>' +
+        '<div class="form-grid">' +
+        fieldHtml({ id: 'bk-title', label: 'Título', value: v.title, required: true, cls: 'span-2', placeholder: 'Ex.: Dom Casmurro', attrs: 'maxlength="120"' }) +
+        fieldHtml({ id: 'bk-author', label: 'Autor', value: v.author, required: true, placeholder: 'Ex.: Machado de Assis', attrs: 'maxlength="80"' }) +
+        fieldHtml({ id: 'bk-genre', label: 'Gênero', tag: 'select', value: v.genre, required: true, placeholder: 'Selecione', options: GENEROS }) +
+        fieldHtml({ id: 'bk-date', label: 'Data de lançamento', type: 'date', value: v.pubDate, required: true, attrs: 'max="' + HOJE + '"' }) +
+        fieldHtml({ id: 'bk-stock', label: 'Exemplares disponíveis', type: 'number', value: v.stock, required: true, attrs: 'min="0" max="999" step="1" inputmode="numeric"', hint: 'Quantidade disponível para reserva agora. O sistema desconta 1 a cada reserva e devolve 1 a cada cancelamento ou devolução.' }) +
+        fieldHtml({ id: 'bk-syn', label: 'Sinopse', tag: 'textarea', value: v.synopsis, cls: 'span-2', hint: 'Opcional, até 2000 caracteres.', attrs: 'maxlength="2000"' }) +
+        '</div><div class="form-actions"><a class="btn-minimal btn-lg" href="#/acervo' + (editing ? '/' + b.id : '') + '">Cancelar</a>' +
+        '<button type="submit" class="btn-minimal btn-primary-solid btn-lg">' + ico('check', 15) + (editing ? 'Salvar alterações' : 'Cadastrar livro') + '</button></div></form>';
+    }
+    function onCoverPick(input) {
+      const f = input.files && input.files[0], err = $('#bk-cover-err'); err.textContent = '';
+      if (!f) return;
+      if (!/^image\//.test(f.type)) { err.textContent = 'Escolha um arquivo de imagem.'; input.value = ''; return; }
+      if (f.size > 5 * 1024 * 1024) { err.textContent = 'A imagem deve ter até 5 MB.'; input.value = ''; return; }
+      const rd = new FileReader();
+      rd.onload = () => { ui.coverDraft = rd.result; refreshCoverPreview(); };
+      rd.readAsDataURL(f);
+    }
+    function removeCover() { ui.coverDraft = null; const i = $('#bk-cover'); if (i) i.value = ''; refreshCoverPreview(); }
+    function refreshCoverPreview() { const b = ui.editId ? bookById(ui.editId) : null; $('#coverPreview').innerHTML = coverPreviewHtml(b, ui.coverDraft); }
+    function nextBookId() {
+      const max = db.books.reduce((m, b) => Math.max(m, parseInt(b.id.replace(/\D/g, ''), 10) || 0), 0);
+      return 'BR-' + String(max + 1).padStart(6, '0');
+    }
+    function bookErrors() {
+      const e = {}, t = val('bk-title'), a = val('bk-author'), g = val('bk-genre'), d = val('bk-date'), sRaw = val('bk-stock');
+      if (!t) e['bk-title'] = 'Informe o título do livro.';
+      if (!a) e['bk-author'] = 'Informe o autor.';
+      if (!g) e['bk-genre'] = 'Selecione um gênero.';
+      if (!d) e['bk-date'] = 'Informe a data de lançamento.'; else if (d > HOJE) e['bk-date'] = 'A data de lançamento não pode estar no futuro.';
+      const s = Number(sRaw);
+      if (sRaw === '' || !Number.isInteger(s)) e['bk-stock'] = 'Informe um número inteiro.';
+      else if (s < 0) e['bk-stock'] = 'O estoque não pode ser negativo.';
+      else if (s > 999) e['bk-stock'] = 'O estoque máximo é de 999 exemplares.';
+      return e;
+    }
+    function saveBook(ev) {
+      ev.preventDefault();
+      const ids = ['bk-title', 'bk-author', 'bk-genre', 'bk-date', 'bk-stock'], errs = bookErrors(), msg = $('#formMsg');
+      ids.forEach((id) => setErr(id, errs[id] || ''));
+      const n = Object.keys(errs).length;
+      if (n) { msg.innerHTML = alertBox('error', 'Não foi possível salvar.', n === 1 ? 'Corrija o campo destacado.' : 'Corrija os ' + n + ' campos destacados.'); focusFirstError(); return false; }
+      const data = { title: val('bk-title'), author: val('bk-author'), genre: val('bk-genre'), pubDate: val('bk-date'), stock: Number(val('bk-stock')), synopsis: val('bk-syn') };
+      let b;
+      if (ui.editId) {
+        b = bookById(ui.editId); Object.assign(b, data);
+        if (ui.coverDraft !== undefined) b.cover = ui.coverDraft;
+        toast('Livro atualizado com sucesso');
+      } else {
+        b = Object.assign({ id: nextBookId(), cover: ui.coverDraft || null }, data);
+        db.books.unshift(b);
+        toast('Livro cadastrado com sucesso');
+      }
+      saveDb();
+      go('/acervo/' + b.id);
+      return false;
+    }
+
+    /* ---------- 5.4 Locações ---------- */
+    function loanDates(l) {
+      const d = (k, v) => '<div class="cell-sub">' + k + ' <span class="font-mono" style="color:var(--foreground)">' + fmtDate(v) + '</span></div>';
+      if (l.status === 'reservada') return d('Reservada em', l.reservedAt) + '<div class="cell-sub" style="color:var(--warning-text);font-weight:500">Aguardando retirada no balcão</div>';
+      if (l.status === 'ativa') return d('Retirada em', l.withdrawnAt) + '<div class="cell-sub" style="font-weight:500">Devolver até <span class="font-mono">' + fmtDate(l.dueDate) + '</span> (' + dueText(l.dueDate).replace('vence ', '') + ')</div>';
+      if (l.status === 'atrasada') return d('Retirada em', l.withdrawnAt) + '<div class="cell-sub" style="color:var(--destructive-text);font-weight:600">Prazo era ' + fmtDate(l.dueDate) + ' (' + plural(diffDays(HOJE, l.dueDate), 'dia', 'dias') + ' de atraso)</div>';
+      if (l.status === 'devolvida') return d('Retirada em', l.withdrawnAt) + d('Devolvida em', l.returnedAt);
+      return d('Reservada em', l.reservedAt) + d('Cancelada em', l.cancelledAt);
+    }
+    /* Leitor: GET /rentals/me. Bibliotecário: GET /rentals com filtros status e ticketCode */
+    function loansFiltered() {
+      const f = ui.f.loans, q = norm(f.q), lib = isLib();
+      return (lib ? db.loans : myLoans()).filter((l) => {
+        if (f.status && l.status !== f.status) return false;
+        if (q && !(norm(l.ticket).indexOf(q) >= 0 || (!lib && norm(loanBook(l).title).indexOf(q) >= 0))) return false;
+        return true;
+      }).sort((a, b) => ((a.reservedAt + a.id) < (b.reservedAt + b.id) ? 1 : -1));
+    }
+    function loanActions(l, lib) {
+      let h = '<button type="button" class="btn-minimal btn-ghost btn-sm" onclick="loanDetail(\'' + l.id + '\')">Ver detalhes</button>';
+      if (l.status === 'reservada') h += '<button type="button" class="btn-minimal btn-destructive-ghost btn-sm" onclick="askCancel(\'' + l.id + '\')">Cancelar reserva</button>';
+      return h;
+    }
+    RESULTS.loans = function () {
+      const lib = isLib(), list = loansFiltered(), pg = paginate(list, ui.f.loans.page);
+      if (!list.length) {
+        const filtered = ui.f.loans.q || ui.f.loans.status;
+        return emptyState('clock', filtered ? 'Nenhuma locação encontrada' : (lib ? 'Nenhuma locação registrada' : 'Você ainda não tem locações'),
+          filtered ? 'Ajuste a busca ou o filtro de status para ver outros resultados.' : (lib ? 'As reservas e locações dos leitores aparecem aqui.' : 'Reserve um livro no catálogo para acompanhá-lo por aqui.'),
+          filtered ? btn('Limpar filtros', 'clearLoanFilters()', { cls: 'btn-primary-solid' }) : (lib ? '' : linkBtn('Explorar catálogo', '#/acervo', { cls: 'btn-primary-solid', icon: 'search' })));
+      }
+      return '<div class="table-wrap"><table class="saas-table"><caption class="sr-only">' + (lib ? 'Locações' : 'Minhas locações') + '</caption><thead><tr><th scope="col">Livro</th>' + (lib ? '<th scope="col">Leitor</th>' : '') + '<th scope="col">Ticket</th><th scope="col">Status</th><th scope="col">Datas importantes</th><th scope="col" class="text-right">Ações</th></tr></thead><tbody>' +
+        pg.items.map((l) => {
+          const b = loanBook(l), u = userById(l.userId);
+          return '<tr class="' + (l.status === 'atrasada' ? 'row-danger' : '') + '"><td><div class="cell-book">' + cover(b, 'sm') + '<div><a href="#/acervo/' + b.id + '" style="font-weight:600;color:inherit;text-decoration:none">' + esc(b.title) + '</a><div class="cell-sub">' + esc(b.author) + '</div></div></div></td>' +
+            (lib ? '<td><a href="#/leitores/' + u.id + '">' + esc(u.name) + '</a></td>' : '') +
+            '<td class="font-mono">' + l.ticket + '</td><td>' + loanBadge(l.status) + '</td><td>' + loanDates(l) + '</td>' +
+            '<td class="act">' + loanActions(l, lib) + '</td></tr>';
+        }).join('') + '</tbody></table></div>' + pagerHtml('loans', pg);
+    };
+    function clearLoanFilters() { ui.f.loans.q = ''; ui.f.loans.status = ''; ui.f.loans.page = 1; render(); }
+
+    function viewLoans() {
+      const f = ui.f.loans, lib = isLib(), all = lib ? db.loans : myLoans();
+      const cnt = (s) => all.filter((l) => l.status === s).length;
+      const statusChips = [['', 'Todas', all.length], ['reservada', 'Reservadas', cnt('reservada')], ['ativa', 'Ativas', cnt('ativa')], ['atrasada', 'Atrasadas', cnt('atrasada')], ['devolvida', 'Devolvidas', cnt('devolvida')], ['cancelada', 'Canceladas', cnt('cancelada')]];
+      return pageHead(lib ? 'Locações' : 'Minhas locações', lib ? 'Reservas e locações de todos os leitores' : 'Acompanhe suas reservas, empréstimos e devoluções',
+        lib ? linkBtn('Retirada e devolução', '#/circulacao', { cls: 'btn-primary-solid', icon: 'ticket' }) : linkBtn('Explorar catálogo', '#/acervo', { cls: 'btn-primary-solid', icon: 'search' })) +
+        '<section class="card-flat flush"><div class="filter-bar">' +
+        '<div class="form-field"><span class="lbl">Status</span>' + segmented('loans', 'status', statusChips, f.status) + '</div>' +
+        '<div class="form-field search"><label for="loan-q">Buscar</label><div class="input-search-wrap">' + ico('search', 14) + '<input id="loan-q" class="input-minimal" type="search" placeholder="' + (lib ? 'Código do ticket' : 'Livro ou ticket') + '" value="' + esc(f.q) + '" oninput="setF(\'loans\',\'q\',this.value)" autocomplete="off"></div></div>' +
+        '</div><div id="res-loans" aria-live="polite">' + RESULTS.loans() + '</div></section>';
+    }
+
+    function loanDetail(id) {
+      const l = loanById(id), b = loanBook(l), u = userById(l.userId), lib = isLib(), fine = l.fineId ? fineById(l.fineId) : null;
+      const kv = (k, v) => '<dt>' + k + '</dt><dd>' + v + '</dd>';
+      const body = '<div class="row" style="margin-bottom:14px">' + cover(b, 'sm') + '<div><b>' + esc(b.title) + '</b><div class="muted">' + esc(b.author) + '</div></div></div><dl class="kv">' +
+        kv('Ticket', '<span class="font-mono">' + l.ticket + '</span>') + kv('Status', loanBadge(l.status)) + (lib ? kv('Leitor', '<a href="#/leitores/' + u.id + '" onclick="closeModal()">' + esc(u.name) + '</a>') : '') +
+        kv('Reservada em', fmtDate(l.reservedAt)) + (l.withdrawnAt ? kv('Retirada em', fmtDate(l.withdrawnAt)) : '') +
+        (l.dueDate ? kv('Prazo de devolução', fmtDate(l.dueDate) + (OPEN.indexOf(l.status) >= 0 ? ' <span class="muted">(' + dueText(l.dueDate).replace('vence ', '') + ')</span>' : '')) : '') +
+        (l.returnedAt ? kv('Devolvida em', fmtDate(l.returnedAt)) : '') + (l.cancelledAt ? kv('Cancelada em', fmtDate(l.cancelledAt)) : '') +
+        (fine ? kv('Multa', money(fine.amount) + ' ' + fineBadge(fine)) : '') + '</dl>';
+      let actions = '<button type="button" class="btn-minimal" onclick="closeModal()">Fechar</button>';
+      if (l.status === 'reservada') actions = '<button type="button" class="btn-minimal btn-destructive-ghost" onclick="askCancel(\'' + l.id + '\')">Cancelar reserva</button>' + actions;
+      if (lib && OPEN.indexOf(l.status) >= 0) actions += '<button type="button" class="btn-minimal btn-primary-solid" onclick="openInCirculation(\'' + l.ticket + '\')">' + (l.status === 'reservada' ? 'Registrar retirada' : 'Registrar devolução') + '</button>';
+      openModal({ title: 'Detalhes da locação', body, actions, wide: false });
+    }
+    function openInCirculation(code) { ui.f.circ.code = code; ui.f.circ.result = null; closeModal(); go('/circulacao'); }
+    function askCancel(id) {
+      const l = loanById(id), b = loanBook(l), lib = isLib();
+      confirmModal({
+        title: 'Cancelar reserva', icon: 'alertTriangle', danger: true, confirmLabel: 'Cancelar reserva', cancelLabel: 'Manter reserva',
+        html: '<p>Deseja cancelar a reserva de <b>' + esc(b.title) + '</b>' + (lib ? ' feita por <b>' + esc(userById(l.userId).name) + '</b>' : '') + ' (ticket <span class="font-mono">' + l.ticket + '</span>)?</p><p class="muted" style="margin-top:6px">O exemplar volta a ficar disponível para outros leitores e a reserva continua no histórico como cancelada.</p>',
+        onConfirm: () => { const r = cancelReservation(id); if (r.ok) toast('Reserva cancelada'); else toast(r.error, 'error'); softRender(); }
+      });
+    }
+
+    /* ---------- 5.4 Operação de circulação (bibliotecário) ---------- */
+    /* Prévia do ticket: GET /rentals?ticketCode=. Tickets em aberto: GET /rentals?status=. Últimas operações: GET /rentals/circulation */
+    function circPreview() {
+      const code = ui.f.circ.code.trim();
+      if (!code) return '<div class="callout callout-info">' + ico('info', 16) + '<div class="callout-body">Digite o código do ticket (ex.: <span class="font-mono">RET-20261016-4B1F9A2C</span>) ou use o leitor de código de barras. Os dados da locação aparecem aqui.</div></div>';
+      const l = findLoanByTicket(code);
+      if (!l) return code.replace(/\W/g, '').length >= 19 ? alertBox('warning', 'Ticket não encontrado.', 'Confira o código digitado.') : '';
+      const b = loanBook(l), u = userById(l.userId);
+      let extra = '';
+      if (l.status === 'atrasada' || (l.status === 'ativa' && l.dueDate < HOJE)) {
+        const fine = l.fineId ? fineById(l.fineId) : null;
+        extra = alertBox('warning', 'Devolução em atraso:', plural(diffDays(HOJE, l.dueDate), 'dia', 'dias') + '.' + (fine ? ' Multa de <b>' + money(fine.amount) + '</b> gerada pelo processamento diário, ' + (fine.status === 'pendente' ? 'pendente de quitação.' : 'já quitada.') : ''));
+      }
+      return '<div class="card-flat" style="background:#F8FAFC;border-color:var(--info-border)"><div class="row between" style="align-items:flex-start;gap:12px"><div class="row">' + cover(b, 'sm') + '<div><div style="font-weight:600">' + esc(b.title) + '</div><div class="muted" style="font-size:12px">' + esc(b.author) + '</div></div></div>' + loanBadge(l.status, true) + '</div>' +
+        '<dl class="kv" style="margin-top:12px"><dt>Leitor</dt><dd>' + esc(u.name) + '</dd><dt>Ticket</dt><dd class="font-mono">' + l.ticket + '</dd><dt>Datas</dt><dd>' + loanDates(l) + '</dd></dl>' + (extra ? '<div style="margin-top:10px">' + extra + '</div>' : '') + '</div>';
+    }
+    function circSide() {
+      const pend = db.loans.filter((l) => OPEN.indexOf(l.status) >= 0).sort((a, b) => ((a.status === 'reservada' ? 1 : 0) - (b.status === 'reservada' ? 1 : 0)) * -1 || (a.id < b.id ? 1 : -1)).slice(0, 6);
+      return '<section class="card-flat flush" aria-labelledby="h-open"><div class="card-head"><h2 class="section-title" id="h-open">Tickets em aberto</h2><span class="muted" style="font-size:12px">clique para preencher</span></div>' +
+        (pend.length ? pend.map((l) => '<button type="button" class="notif" style="width:100%;border:none;border-bottom:1px solid var(--border);text-align:left;cursor:pointer" onclick="useTicket(\'' + l.ticket + '\')"><div class="grow"><div class="row between"><span class="font-mono" style="font-weight:600;font-size:12px">' + l.ticket + '</span>' + loanBadge(l.status) + '</div><div style="font-size:12.5px;margin-top:2px">' + esc(loanBook(l).title) + '</div><div class="cell-sub">' + esc(userById(l.userId).name) + ' · ' + (l.status === 'reservada' ? 'aguardando retirada' : 'aguardando devolução') + '</div></div></button>').join('') : emptyState('inbox', 'Sem tickets em aberto', 'Reservas e locações em andamento aparecem aqui.')) + '</section>' +
+        '<section class="card-flat flush" aria-labelledby="h-ops"><div class="card-head"><h2 class="section-title" id="h-ops">Últimas operações</h2></div>' + opsList(5) + '</section>';
+    }
+    RESULTS.circ = circSide;
+
+    function viewCirculation() {
+      return pageHead('Retirada e devolução', 'Registre a retirada de reservas e a devolução de livros pelo código do ticket') +
+        '<div class="grid-main-side"><section class="card-flat" aria-labelledby="h-tk"><h2 class="section-title" id="h-tk" style="margin-bottom:12px">Operação de circulação</h2>' +
+        '<div id="circMsg" style="margin-bottom:12px"></div>' +
+        '<div class="form-field" id="f-circ-code"><label for="circ-code">Código do ticket</label><div class="row"><input id="circ-code" class="input-minimal font-mono" style="height:44px;font-size:15px;font-weight:600;letter-spacing:0.03em" type="text" value="' + esc(ui.f.circ.code) + '" placeholder="Ex.: RET-20261016-4B1F9A2C" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="circ-code-err" oninput="circInput(this.value)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();circAction(\'auto\')}">' +
+        '<button type="button" class="btn-minimal" style="height:44px" onclick="scanTicket()" aria-label="Simular leitura do código de barras">' + ico('scan', 18) + 'Escanear</button></div><span class="error-msg" id="circ-code-err" role="alert"></span></div>' +
+        '<div id="circPreview" aria-live="polite" style="margin:14px 0">' + circPreview() + '</div>' +
+        '<div class="row wrap" style="gap:10px"><button type="button" class="btn-minimal btn-primary-solid btn-lg" onclick="circAction(\'retirada\')">' + ico('arrowR', 16) + 'Confirmar retirada</button>' +
+        '<button type="button" class="btn-minimal btn-lg" onclick="circAction(\'devolucao\')">' + ico('arrowL', 16) + 'Confirmar devolução</button></div></section>' +
+        '<div class="stack" id="res-circ">' + circSide() + '</div></div>';
+    }
+    const circInput = debounce((v) => { ui.f.circ.code = v; setErr('circ-code', ''); const p = $('#circPreview'); if (p) p.innerHTML = circPreview(); }, 160);
+    function useTicket(code) { ui.f.circ.code = code; const i = $('#circ-code'); if (i) { i.value = code; i.focus(); } setErr('circ-code', ''); $('#circPreview').innerHTML = circPreview(); $('#circMsg').innerHTML = ''; }
+    function scanTicket() {
+      const l = db.loans.find((x) => x.status === 'reservada') || db.loans.find((x) => x.status === 'ativa' || x.status === 'atrasada');
+      if (!l) { toast('Nenhum ticket em aberto para ler', 'error'); return; }
+      useTicket(l.ticket); toast('Código lido: ' + l.ticket);
+    }
+    function circAction(kind) {
+      const code = val('circ-code'), msg = $('#circMsg'); msg.innerHTML = ''; setErr('circ-code', '');
+      ui.f.circ.code = code;
+      if (!code) { setErr('circ-code', 'Informe ou escaneie o código do ticket.'); msg.innerHTML = alertBox('error', 'Ticket não informado.', 'Digite ou escaneie o código para continuar.'); $('#circ-code').focus(); return; }
+      const l = findLoanByTicket(code);
+      if (!l) { setErr('circ-code', 'Ticket não encontrado.'); msg.innerHTML = alertBox('error', 'Ticket não encontrado.', 'Confira o código <span class="font-mono">' + esc(code) + '</span> e tente novamente.'); return; }
+      if (kind === 'auto') kind = l.status === 'reservada' ? 'retirada' : 'devolucao';
+      const b = loanBook(l), u = userById(l.userId);
+      if (kind === 'retirada') {
+        let err = '';
+        if (l.status === 'ativa' || l.status === 'atrasada') err = 'A retirada deste ticket já foi confirmada em ' + fmtDate(l.withdrawnAt) + '. Para encerrar a locação, use "Confirmar devolução".';
+        else if (l.status === 'devolvida') err = 'Este ticket já foi devolvido em ' + fmtDate(l.returnedAt) + '.';
+        else if (l.status === 'cancelada') err = 'Esta reserva foi cancelada em ' + fmtDate(l.cancelledAt) + ' e não pode ser retirada.';
+        if (err) { msg.innerHTML = alertBox('error', 'Retirada não permitida.', esc(err)); return; }
+        confirmModal({
+          title: 'Confirmar retirada', icon: 'arrowR', confirmLabel: 'Confirmar retirada',
+          html: '<p><b>' + esc(b.title) + '</b> será entregue a <b>' + esc(u.name) + '</b>.</p><p class="muted" style="margin-top:6px">Prazo de devolução: <b>' + fmtDate(addDays(HOJE, PRAZO_DIAS)) + '</b> (' + PRAZO_DIAS + ' dias a partir de hoje).</p>',
+          onConfirm: () => { confirmPickup(l); circDone(alertBox('success', 'Retirada confirmada.', '<b>' + esc(b.title) + '</b> entregue a ' + esc(u.name) + '. Devolução prevista para <b>' + fmtDate(l.dueDate) + '</b>.'), 'Retirada confirmada'); }
+        });
+      } else {
+        let err = '';
+        if (l.status === 'reservada') err = 'Este ticket ainda não teve a retirada confirmada. Use "Confirmar retirada" primeiro.';
+        else if (l.status === 'devolvida') err = 'Este ticket já foi devolvido em ' + fmtDate(l.returnedAt) + '.';
+        else if (l.status === 'cancelada') err = 'Esta reserva foi cancelada e não possui livro para devolver.';
+        if (err) { msg.innerHTML = alertBox('error', 'Devolução não permitida.', esc(err)); return; }
+        const late = Math.max(0, diffDays(HOJE, l.dueDate));
+        const fine = l.fineId ? fineById(l.fineId) : null;
+        confirmModal({
+          title: 'Confirmar devolução', icon: 'arrowL', confirmLabel: 'Confirmar devolução',
+          html: '<p><b>' + esc(b.title) + '</b> devolvido por <b>' + esc(u.name) + '</b>.</p>' + (late ? '<div style="margin-top:10px">' + alertBox('warning', 'Atraso de ' + plural(late, 'dia', 'dias') + '.', fine && fine.status === 'pendente' ? 'A multa de <b>' + money(fine.amount) + '</b> gerada pelo processamento diário continua pendente até ser quitada.' : 'A multa é calculada pelo processamento diário.') + '</div>' : '<p class="muted" style="margin-top:6px">Devolução dentro do prazo, sem multa.</p>'),
+          onConfirm: () => { const r = confirmReturn(l); circDone(alertBox('success', 'Devolução confirmada.', '<b>' + esc(b.title) + '</b> devolvido por ' + esc(u.name) + '.') + (r.fine && r.fine.status === 'pendente' ? '<div style="margin-top:8px">' + alertBox('warning', 'Multa pendente:', '<b>' + money(r.fine.amount) + '</b>. Registre a quitação em Multas quando o leitor pagar.') + '</div>' : ''), 'Devolução confirmada'); }
+        });
+      }
+    }
+    function circDone(html, toastText) {
+      ui.f.circ.code = ''; const i = $('#circ-code'); if (i) { i.value = ''; i.focus(); }
+      $('#circMsg').innerHTML = html; $('#circPreview').innerHTML = circPreview(); refresh('circ'); toast(toastText);
+    }
+
+    /* ---------- 5.5 Multas ---------- */
+    /* Leitor: GET /fines/me. Bibliotecário: GET /fines com filtro status */
+    function fineOrigin(f) {
+      const l = loanById(f.loanId);
+      return (l && l.status === 'atrasada' ? 'Atraso em andamento: ' : 'Atraso na devolução: ') + fineTitle(f);
+    }
+    function finesFiltered() {
+      const f = ui.f.fines, lib = isLib();
+      return (lib ? db.fines : myFines()).filter((x) => !f.status || x.status === f.status)
+        .sort((a, b) => (a.status !== b.status ? (a.status === 'pendente' ? -1 : 1) : (a.createdAt < b.createdAt ? 1 : -1)));
+    }
+    RESULTS.fines = function () {
+      const lib = isLib(), list = finesFiltered(), pg = paginate(list, ui.f.fines.page);
+      if (!list.length) {
+        const filtered = ui.f.fines.status;
+        return emptyState('checkCircle', filtered ? 'Nenhuma multa neste filtro' : (lib ? 'Nenhuma multa registrada' : 'Você não tem multas'), filtered ? 'Escolha outro status para ver mais resultados.' : (lib ? 'Quando houver atrasos, as multas aparecem aqui.' : 'Ótimo! Devolva os livros no prazo para continuar assim.'), filtered ? btn('Ver todas', "setF('fines','status','');render()", { cls: 'btn-primary-solid' }) : '');
+      }
+      return '<div class="table-wrap"><table class="saas-table"><caption class="sr-only">' + (lib ? 'Multas' : 'Minhas multas') + '</caption><thead><tr>' + (lib ? '<th scope="col">Leitor</th>' : '') + '<th scope="col">Origem</th><th scope="col" class="text-right">Valor</th><th scope="col">Gerada em</th><th scope="col">Status</th><th scope="col" class="text-right">Ações</th></tr></thead><tbody>' +
+        pg.items.map((f) => { const u = userById(f.userId); return '<tr class="' + (f.status === 'pendente' ? 'row-danger' : '') + '">' + (lib ? '<td><a href="#/leitores/' + u.id + '">' + esc(u.name) + '</a></td>' : '') +
+          '<td><div style="font-weight:500">' + esc(fineOrigin(f)) + '</div><div class="cell-sub">' + plural(f.days, 'dia', 'dias') + ' de atraso</div></td><td class="text-right font-mono" style="font-weight:600;' + (f.status === 'pendente' ? 'color:var(--destructive)' : '') + '">' + money(f.amount) + '</td>' +
+          '<td class="font-mono">' + fmtDate(f.createdAt) + '</td><td>' + fineBadge(f) + '</td><td class="act"><button type="button" class="btn-minimal btn-ghost btn-sm" onclick="fineDetail(\'' + f.id + '\')">Detalhes</button>' +
+          (lib && f.status === 'pendente' ? '<button type="button" class="btn-minimal btn-sm" onclick="askPayFine(\'' + f.id + '\')">Registrar quitação</button>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>' + pagerHtml('fines', pg);
+    };
+    function viewFines() {
+      const lib = isLib(), all = lib ? db.fines : myFines(), pend = pendingFines(all), paid = all.filter((f) => f.status === 'quitada'), f = ui.f.fines;
+      return pageHead(lib ? 'Multas' : 'Minhas multas', 'Multa de ' + money(MULTA_DIA) + ' por dia de atraso, calculada pelo processamento diário') +
+        (pend.length ? '<div style="margin-bottom:16px">' + alertBox('error', lib ? 'Multas pendentes:' : 'Você tem multas pendentes.', (lib ? plural(pend.length, 'multa', 'multas') + ' somam' : plural(pend.length, 'multa soma', 'multas somam')) + ' <b>' + money(sumFines(pend)) + '</b>. ' + (lib ? 'Registre a quitação quando o leitor pagar no balcão.' : 'O pagamento é feito no balcão da biblioteca.')) + '</div>' : '') +
+        '<div class="grid-kpi">' + kpi('Pendentes', money(sumFines(pend)), plural(pend.length, 'multa em aberto', 'multas em aberto'), { cls: pend.length ? 'danger' : 'ok', icon: 'alertTriangle' }) +
+        kpi('Quitadas', money(sumFines(paid)), plural(paid.length, 'multa quitada', 'multas quitadas'), { icon: 'checkCircle' }) + kpi('Total registrado', all.length, 'desde o início do histórico', { icon: 'dollar' }) + '</div>' +
+        '<section class="card-flat flush"><div class="filter-bar"><div class="form-field"><span class="lbl">Status</span>' + segmented('fines', 'status', [['', 'Todas', all.length], ['pendente', 'Pendentes', pend.length], ['quitada', 'Quitadas', paid.length]], f.status) + '</div></div>' +
+        '<div id="res-fines" aria-live="polite">' + RESULTS.fines() + '</div></section>';
+    }
+    function fineDetail(id) {
+      const f = fineById(id), l = loanById(f.loanId), lib = isLib(), kv = (k, v) => '<dt>' + k + '</dt><dd>' + v + '</dd>';
+      const growing = l && l.status === 'atrasada';
+      openModal({
+        title: 'Detalhes da multa',
+        body: (f.status === 'pendente' ? alertBox('error', 'Multa pendente.', lib ? 'Aguardando pagamento no balcão.' : 'Procure o balcão da biblioteca para quitar.') : alertBox('success', 'Multa quitada', 'em ' + fmtDate(f.paidAt) + '.')) +
+          '<dl class="kv" style="margin-top:14px">' + (lib ? kv('Leitor', esc(userById(f.userId).name)) : '') + kv('Livro', esc(fineTitle(f))) +
+          kv('Origem', 'Atraso na devolução') + (l ? kv('Prazo era', fmtDate(l.dueDate)) : '') + kv('Cálculo', '<span class="font-mono">' + f.days + ' × ' + money(MULTA_DIA) + ' = <b>' + money(f.amount) + '</b></span>') + kv('Gerada em', fmtDate(f.createdAt)) + kv('Status', fineBadge(f)) + '</dl>' +
+          (growing ? '<div style="margin-top:12px">' + alertBox('warning', 'Em andamento:', 'o livro ainda não foi devolvido. O processamento diário aumenta o valor em ' + money(MULTA_DIA) + ' por dia até a devolução.') + '</div>' : ''),
+        actions: '<button type="button" class="btn-minimal" onclick="closeModal()">Fechar</button>' + (lib && f.status === 'pendente' ? '<button type="button" class="btn-minimal btn-primary-solid" onclick="askPayFine(\'' + f.id + '\')">Registrar quitação</button>' : '')
+      });
+    }
+    function askPayFine(id) {
+      const f = fineById(id);
+      confirmModal({
+        title: 'Registrar quitação', icon: 'dollar', confirmLabel: 'Confirmar quitação',
+        html: '<p>Confirmar o recebimento de <b>' + money(f.amount) + '</b> referente ao atraso de <b>' + esc(fineTitle(f)) + '</b> de <b>' + esc(userById(f.userId).name) + '</b>?</p><p class="muted" style="margin-top:6px">O leitor recebe uma notificação de multa quitada.</p>',
+        onConfirm: () => { registerFinePayment(id); toast('Quitação registrada'); softRender(); }
+      });
+    }
+
+    /* ---------- 5.6 Avaliações ---------- */
+    function viewMyReviews() {
+      const list = db.reviews.filter((r) => r.userId === sessionUserId).sort((a, b) => (a.date < b.date ? 1 : -1));
+      return pageHead('Minhas avaliações', plural(list.length, 'avaliação feita', 'avaliações feitas'), linkBtn('Explorar catálogo', '#/acervo', { cls: 'btn-primary-solid', icon: 'search' })) +
+        (list.length ? '<div class="stack">' + list.map((r) => {
+          const b = bookById(r.bookId);
+          return '<article class="card-flat"><div class="row between" style="align-items:flex-start;gap:12px;flex-wrap:wrap"><div class="row" style="align-items:flex-start;gap:12px">' + cover(b, 'sm') + '<div><a href="#/acervo/' + b.id + '" style="font-weight:600;font-size:14px;color:inherit;text-decoration:none">' + esc(b.title) + '</a><div class="muted" style="font-size:12px">' + esc(b.author) + '</div>' +
+            '<div class="row wrap" style="gap:8px;margin-top:6px">' + stars(r.rating, 15) + '<span class="tag">Exemplar: ' + esc(r.condition) + '</span><span class="muted font-mono" style="font-size:11px">' + fmtDate(r.date) + '</span></div></div></div>' +
+            '<div class="row"><a class="btn-minimal btn-sm" href="#/acervo/' + b.id + '/avaliar">' + ico('edit', 13) + 'Editar</a><button type="button" class="btn-minimal btn-destructive-ghost btn-sm" onclick="askDeleteReview(\'' + r.id + '\')">' + ico('trash', 13) + 'Excluir</button></div></div>' +
+            (r.comment ? '<p style="margin-top:10px;font-size:13px;color:var(--muted-strong)">' + esc(r.comment) + '</p>' : '') + '</article>';
+        }).join('') + '</div>' : '<div class="card-flat">' + emptyState('star', 'Você ainda não avaliou nenhum livro', 'Depois de retirar um livro, você pode contar o que achou e informar a condição do exemplar.', linkBtn('Ver minhas locações', '#/locacoes', { cls: 'btn-primary-solid', icon: 'clock' })) + '</div>');
+    }
+    function askDeleteReview(id) {
+      const r = db.reviews.find((x) => x.id === id), b = bookById(r.bookId);
+      confirmModal({
+        title: 'Excluir avaliação', icon: 'trash', danger: true, confirmLabel: 'Excluir',
+        html: '<p>Deseja excluir sua avaliação de <b>' + esc(b.title) + '</b>? Esta ação não pode ser desfeita.</p>',
+        onConfirm: () => { db.reviews = db.reviews.filter((x) => x.id !== id); saveDb(); toast('Avaliação excluída'); softRender(); }
+      });
+    }
+
+    function viewReviewForm(p) {
+      const b = bookById(p.id);
+      if (!b) return emptyState('search', 'Livro não encontrado', 'Escolha um livro no catálogo para avaliar.', linkBtn('Ir ao catálogo', '#/acervo', { cls: 'btn-primary-solid' }));
+      const mine = db.reviews.find((r) => r.bookId === b.id && r.userId === sessionUserId);
+      if (!mine && !canReview(b.id)) return emptyState('lock', 'Avaliação indisponível', 'Você poderá avaliar <b>' + esc(b.title) + '</b> depois de retirá-lo no balcão.', linkBtn('Voltar ao livro', '#/acervo/' + b.id, { cls: 'btn-primary-solid' }));
+      ui.ratingDraft = mine ? mine.rating : 0;
+      return crumbs([['Catálogo', '#/acervo'], [b.title, '#/acervo/' + b.id], [mine ? 'Editar avaliação' : 'Avaliar livro']]) +
+        pageHead(mine ? 'Editar avaliação' : 'Avaliar livro', mine ? 'Você avaliou este livro em ' + fmtDate(mine.date) + '. Altere os campos abaixo e salve.' : 'Conte como foi a leitura e o estado do exemplar que você retirou.') +
+        '<div id="reviewBox" class="card-flat" style="max-width:720px"><div class="row" style="margin-bottom:18px">' + cover(b, 'md') + '<div><div style="font-weight:700;font-size:15px">' + esc(b.title) + '</div><div class="muted">' + esc(b.author) + '</div></div></div>' +
+        '<form novalidate class="stack" onsubmit="return saveReview(event,\'' + b.id + '\')"><div id="formMsg"></div>' +
+        '<div class="form-field" id="f-rating"><span class="lbl" id="rating-lbl" style="font-size:12px;font-weight:500">Nota <span class="req" aria-hidden="true">*</span></span>' + starInput(ui.ratingDraft) + '<span class="hint" id="rating-hint">' + ratingWord(ui.ratingDraft) + '</span><span class="error-msg" id="rating-err" role="alert"></span></div>' +
+        fieldHtml({ id: 'rv-cond', label: 'Condição do exemplar', tag: 'select', value: mine ? mine.condition : '', placeholder: 'Selecione', options: CONDICOES, required: true }) +
+        fieldHtml({ id: 'rv-text', label: 'Comentário', tag: 'textarea', value: mine ? mine.comment : '', placeholder: 'O que você achou do livro? (opcional)', hint: '<span id="rv-count">' + (mine ? mine.comment.length : 0) + '</span>/1000 caracteres.', attrs: 'maxlength="1000" oninput="$(\'#rv-count\').textContent=this.value.length" rows="5"' }) +
+        '<div class="form-actions"><a class="btn-minimal btn-lg" href="#/acervo/' + b.id + '">Cancelar</a><button type="submit" class="btn-minimal btn-primary-solid btn-lg">' + ico('check', 15) + (mine ? 'Salvar alterações' : 'Enviar avaliação') + '</button></div></form></div>';
+    }
+    function ratingWord(n) { return n ? ['', 'Ruim', 'Regular', 'Bom', 'Muito bom', 'Excelente'][n] : 'Toque em uma estrela para avaliar.'; }
+    function starInput(n) {
+      let h = '<div class="star-input" role="radiogroup" aria-labelledby="rating-lbl">';
+      for (let i = 1; i <= 5; i++) h += '<button type="button" role="radio" aria-checked="' + (i <= n && i === n) + '" aria-label="' + i + (i === 1 ? ' estrela' : ' estrelas') + '" class="' + (i <= n ? 'on' : '') + '" onclick="setRating(' + i + ')">' + ico('star', 20, i <= n ? 'currentColor' : 'none') + '</button>';
+      return h + '</div>';
+    }
+    function setRating(n) {
+      ui.ratingDraft = n; setErr('rating', '');
+      const f = $('#f-rating'), old = $('.star-input', f); old.outerHTML = starInput(n); $('#rating-hint').textContent = ratingWord(n);
+      const btns = $$('.star-input button', f); if (btns[n - 1]) btns[n - 1].focus();
+    }
+    function saveReview(ev, bookId) {
+      ev.preventDefault();
+      const rating = ui.ratingDraft, cond = val('rv-cond'), text = val('rv-text'); let n = 0;
+      setErr('rating', ''); setErr('rv-cond', '');
+      if (!rating) { setErr('rating', 'Escolha uma nota de 1 a 5.'); n++; }
+      if (!cond) { setErr('rv-cond', 'Selecione a condição do exemplar.'); n++; }
+      if (n) { $('#formMsg').innerHTML = alertBox('error', 'Revise o formulário.', n === 1 ? 'Há 1 campo com problema.' : 'Há ' + n + ' campos com problema.'); const f0 = $('.form-field.has-error button, .form-field.has-error select, .form-field.has-error textarea'); if (f0) f0.focus(); return false; }
+      const b = bookById(bookId), mine = db.reviews.find((r) => r.bookId === bookId && r.userId === sessionUserId);
+      if (mine) { Object.assign(mine, { rating, condition: cond, comment: text, date: HOJE }); }
+      else db.reviews.push({ id: nextId('review', 'RV-', 3), userId: sessionUserId, bookId, rating, condition: cond, comment: text, date: HOJE });
+      saveDb();
+      $('#reviewBox').innerHTML = alertBox('success', mine ? 'Avaliação atualizada!' : 'Avaliação enviada!', 'Obrigado por compartilhar sua opinião sobre <b>' + esc(b.title) + '</b>.') +
+        '<div class="row" style="margin:16px 0 6px">' + stars(rating, 18) + '<span class="tag">Exemplar: ' + esc(cond) + '</span></div>' + (text ? '<p style="font-size:13px;color:var(--muted-strong)">' + esc(text) + '</p>' : '') +
+        '<div class="form-actions"><a class="btn-minimal btn-lg" href="#/acervo/' + b.id + '">Voltar ao livro</a><a class="btn-minimal btn-primary-solid btn-lg" href="#/avaliacoes">Ver minhas avaliações</a></div>';
+      toast(mine ? 'Avaliação atualizada' : 'Avaliação enviada');
+      window.scrollTo(0, 0);
+      return false;
+    }
+
+    /* ---------- 5.7 Favoritos ---------- */
+    function viewFavorites() {
+      const books = favs().map(bookById).filter(Boolean);
+      return pageHead('Meus favoritos', plural(books.length, 'livro favorito', 'livros favoritos'), linkBtn('Explorar catálogo', '#/acervo', { icon: 'search' })) +
+        (books.length ? '<div class="grid-books">' + books.map((b) => '<article class="book-card"><div><div class="row between" style="align-items:flex-start;margin-bottom:10px">' + cover(b, 'md') + favBtn(b) + '</div>' +
+          '<h3><a href="#/acervo/' + b.id + '" style="color:inherit;text-decoration:none">' + esc(b.title) + '</a></h3><p class="author">' + esc(b.author) + '</p><div class="meta"><span class="tag">' + esc(b.genre) + '</span></div><div class="stock-line">' + stockText(b) + '</div><button type="button" class="btn-minimal btn-destructive-ghost btn-sm" style="margin-top:8px;padding-left:0" onclick="toggleFav(\'' + b.id + '\')">' + ico('heart', 13) + 'Remover dos favoritos</button></div>' +
+          '<div class="foot">' + availBadge(b) + '<div class="row" style="gap:4px"><a class="btn-minimal btn-sm" href="#/acervo/' + b.id + '">Ver detalhes</a>' +
+          '<button type="button" class="btn-minimal btn-primary-solid btn-sm" onclick="askReserve(\'' + b.id + '\')"' + (bookAvail(b) ? '' : ' disabled') + '>Reservar</button></div></div></article>').join('') + '</div>' :
+          '<div class="card-flat">' + emptyState('heart', 'Nenhum favorito por enquanto', 'Toque no coração em qualquer livro do catálogo para guardá-lo aqui e encontrá-lo depois.', linkBtn('Explorar catálogo', '#/acervo', { cls: 'btn-primary-solid', icon: 'search' })) + '</div>');
+    }
+
+    /* ---------- 5.8 Lista de desejos ---------- */
+    function viewWishlist() {
+      const order = { Alta: 0, 'Média': 1, Baixa: 2 };
+      const items = wishes().slice().sort((a, b) => order[a.priority] - order[b.priority]);
+      return pageHead('Minha lista de desejos', plural(items.length, 'livro na lista', 'livros na lista'), linkBtn('Adicionar pelo catálogo', '#/acervo', { icon: 'plus' })) +
+        (items.length ? '<section class="card-flat flush"><div class="table-wrap"><table class="saas-table"><caption class="sr-only">Lista de desejos</caption><thead><tr><th scope="col">Livro</th><th scope="col">Prioridade</th><th scope="col">Observação</th><th scope="col">Disponibilidade</th><th scope="col" class="text-right">Ações</th></tr></thead><tbody>' +
+          items.map((w) => { const b = bookById(w.bookId); return '<tr><td><div class="cell-book">' + cover(b, 'sm') + '<div><a href="#/acervo/' + b.id + '" style="font-weight:600;color:inherit;text-decoration:none">' + esc(b.title) + '</a><div class="cell-sub">' + esc(b.author) + '</div></div></div></td><td>' + priorityBadge(w.priority) + '</td>' +
+            '<td style="max-width:280px;color:var(--muted-strong)">' + (w.note ? esc(w.note) : '<span class="muted">Sem observação</span>') + '</td><td>' + availBadge(b) + '</td>' +
+            '<td class="act"><button type="button" class="btn-minimal btn-sm" onclick="wishModal(\'' + b.id + '\',true)">' + ico('edit', 13) + 'Editar</button><button type="button" class="btn-minimal btn-destructive-ghost btn-sm" onclick="askRemoveWish(\'' + b.id + '\')">' + ico('trash', 13) + 'Remover</button></td></tr>'; }).join('') + '</tbody></table></div></section>' :
+          '<div class="card-flat">' + emptyState('bookmark', 'Sua lista de desejos está vazia', 'Guarde aqui os livros que você quer ler no futuro e defina uma prioridade para cada um.', linkBtn('Explorar catálogo', '#/acervo', { cls: 'btn-primary-solid', icon: 'search' })) + '</div>');
+    }
+    function askRemoveWish(id) {
+      const b = bookById(id);
+      confirmModal({
+        title: 'Remover da lista de desejos', icon: 'trash', danger: true, confirmLabel: 'Remover',
+        html: '<p>Deseja remover <b>' + esc(b.title) + '</b> da sua lista de desejos?</p>',
+        onConfirm: () => { const l = wishes(), i = l.findIndex((w) => w.bookId === id); if (i >= 0) l.splice(i, 1); saveDb(); toast('Item removido'); softRender(); }
+      });
+    }
+
+    /* ---------- 5.9 Notificações ---------- */
+    function notifsFiltered() {
+      const t = ui.f.notifs.type;
+      return myNotifs().filter((n) => (t === 'unread' ? !n.read : t ? n.type === t : true));
+    }
+    RESULTS.notifs = function () {
+      const list = notifsFiltered(), pg = paginate(list, ui.f.notifs.page);
+      if (!list.length) {
+        const t = ui.f.notifs.type;
+        return emptyState('bell', t === 'unread' ? 'Tudo em dia!' : 'Nenhuma notificação', t === 'unread' ? 'Você não tem notificações não lidas.' : 'Avisos de vencimento e de multas aparecem aqui.', t ? btn('Ver todas', "setF('notifs','type','');render()", { cls: 'btn-primary-solid' }) : '');
+      }
+      return pg.items.map((n) => { const t = NOTIF_TYPES[n.type]; return '<article class="notif ' + (n.read ? '' : 'unread') + '"><div class="notif-icon ' + t[3] + '">' + ico(t[2], 17) + '</div><div class="grow"><div class="notif-title">' + esc(t[1]) + '</div>' +
+        '<div class="notif-text">' + esc(n.text) + '</div><div class="row wrap" style="gap:8px;margin-top:6px"><span class="notif-time" style="margin-top:0">' + friendly(n.at) + '</span></div></div>' +
+        '<div class="row" style="gap:2px">' + (n.read ? '' : '<button type="button" class="icon-btn sm" aria-label="Marcar como lida: ' + esc(t[1]) + '" title="Marcar como lida" onclick="markRead(\'' + n.id + '\')">' + ico('check', 16) + '</button>') +
+        '<button type="button" class="icon-btn sm danger" aria-label="Remover: ' + esc(t[1]) + '" title="Remover" onclick="removeNotif(\'' + n.id + '\')">' + ico('trash', 16) + '</button></div></article>'; }).join('') + pagerHtml('notifs', pg);
+    };
+    function viewNotifications() {
+      const all = myNotifs(), un = all.filter((n) => !n.read).length, cnt = (t) => all.filter((n) => n.type === t).length, f = ui.f.notifs;
+      return pageHead('Central de notificações', un ? plural(un, 'notificação não lida', 'notificações não lidas') : 'Você está em dia com seus avisos',
+        '<button type="button" class="btn-minimal" onclick="markAllRead()"' + (un ? '' : ' disabled') + '>' + ico('check', 14) + 'Marcar todas como lidas</button><button type="button" class="btn-minimal btn-ghost" onclick="askClearRead()"' + (all.length - un ? '' : ' disabled') + '>' + ico('trash', 14) + 'Limpar lidas</button>') +
+        '<section class="card-flat flush"><div class="filter-bar">' + segmented('notifs', 'type', [['', 'Todas', all.length], ['unread', 'Não lidas', un], ['prazo', 'Vencimento', cnt('prazo')], ['multa', 'Multa gerada', cnt('multa')], ['quitacao', 'Multa quitada', cnt('quitacao')]], f.type) + '</div>' +
+        '<div id="res-notifs" aria-live="polite">' + RESULTS.notifs() + '</div></section>';
+    }
+
+    function markRead(id) { const n = db.notifications.find((x) => x.id === id); if (n) n.read = true; saveDb(); softRender(); }
+    function markAllRead() { db.notifications.forEach((n) => { if (n.userId === sessionUserId) n.read = true; }); saveDb(); toast('Todas as notificações foram marcadas como lidas'); softRender(); }
+    function removeNotif(id) { db.notifications = db.notifications.filter((x) => x.id !== id); saveDb(); toast('Notificação removida'); softRender(); }
+    function askClearRead() {
+      const n = myNotifs().filter((x) => x.read).length;
+      confirmModal({
+        title: 'Limpar notificações lidas', icon: 'trash', danger: true, confirmLabel: 'Limpar',
+        html: '<p>Remover ' + plural(n, 'notificação lida', 'notificações lidas') + '? As não lidas serão mantidas.</p>',
+        onConfirm: () => { db.notifications = db.notifications.filter((x) => !(x.userId === sessionUserId && x.read)); saveDb(); toast('Notificações lidas removidas'); softRender(); }
+      });
+    }
+
+    /* ---------- 5.10 Administração: logs do job diário (GET /jobs) ---------- */
+    function runSeconds(r) { return Math.max(0, Math.round((new Date(r.finishedAt + 'Z') - new Date(r.startedAt + 'Z')) / 1000)); }
+    function runSummary(r) {
+      const s = r.details.summary;
+      return plural(r.details.rentalsScanned, 'locação verificada', 'locações verificadas') + ' · ' + plural(s.overdueMarked, 'atraso marcado', 'atrasos marcados') + ' · ' + plural(s.finesCreated, 'multa criada', 'multas criadas') + ' · ' + plural(s.notificationsSent, 'notificação', 'notificações');
+    }
+    function runsFiltered() {
+      const st = ui.f.logs.status;
+      return db.jobRuns.filter((r) => !st || r.status === st).sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1));
+    }
+    RESULTS.logs = function () {
+      const list = runsFiltered(), pg = paginate(list, ui.f.logs.page);
+      if (!list.length) return emptyState('terminal', 'Nenhuma execução encontrada', 'Não há execuções para o filtro selecionado.', btn('Ver todas', "setF('logs','status','');render()", { cls: 'btn-primary-solid' }));
+      return '<div class="table-wrap"><table class="saas-table"><caption class="sr-only">Execuções do job diário</caption><thead><tr><th scope="col">Execução</th><th scope="col">Início</th><th scope="col">Duração</th><th scope="col">Status</th><th scope="col">Resumo do processamento</th><th scope="col" class="text-right">Ações</th></tr></thead><tbody>' +
+        pg.items.map((r) => '<tr class="' + (r.status === 'failed' ? 'row-danger' : '') + '"><td class="font-mono" style="font-weight:600">' + r.id + '</td><td class="font-mono nowrap">' + fmtDateTime(r.startedAt) + '</td><td class="font-mono">' + runSeconds(r) + 's</td><td>' + jobBadge(r.status) + '</td>' +
+          '<td style="max-width:360px">' + (r.status === 'failed' ? '<span style="color:var(--destructive-text)">' + esc(r.error) + '</span>' : esc(runSummary(r))) + '</td>' +
+          '<td class="act"><a class="btn-minimal btn-ghost btn-sm" href="#/admin/logs/' + r.id + '">Ver detalhes</a></td></tr>').join('') + '</tbody></table></div>' + pagerHtml('logs', pg);
+    };
+    function viewLogs() {
+      const runs = db.jobRuns, r = lastRun(), ok = runs.filter((x) => x.status === 'success').length, f = ui.f.logs;
+      return pageHead('Logs do job diário', 'Execuções do processamento de vencimentos, atrasos, multas e avisos (todos os dias às 03:00, horário de Brasília)') +
+        (r.status === 'failed' ? '<div style="margin-bottom:16px">' + alertBox('error', 'A última execução falhou.', esc(r.error || ''), '<a class="btn-minimal btn-sm" href="#/admin/logs/' + r.id + '">Ver detalhes</a>') + '</div>' : '') +
+        '<div class="grid-kpi">' + kpi('Última execução', '<span style="font-size:18px;color:var(' + (r.status === 'success' ? '--success-text' : '--destructive') + ')">' + (r.status === 'success' ? 'Sucesso' : 'Falha') + '</span>', fmtDateTime(r.startedAt), { cls: r.status === 'success' ? 'ok' : 'danger', icon: 'activity' }) +
+        kpi('Taxa de sucesso', Math.round(ok / runs.length * 100) + '%', ok + ' de ' + runs.length + ' execuções', { icon: 'checkCircle' }) +
+        kpi('Falhas registradas', runs.length - ok, 'no histórico recente', { cls: runs.length - ok ? 'warn' : '', icon: 'alertTriangle' }) +
+        kpi('Próxima execução', '<span style="font-size:18px">18/10 03:00</span>', 'agendada automaticamente', { icon: 'clock' }) + '</div>' +
+        '<section class="card-flat flush"><div class="filter-bar"><div class="form-field"><span class="lbl">Status</span>' + segmented('logs', 'status', [['', 'Todas', runs.length], ['success', 'Sucesso', ok], ['failed', 'Falha', runs.length - ok]], f.status) + '</div></div>' +
+        '<div id="res-logs" aria-live="polite">' + RESULTS.logs() + '</div></section>';
+    }
+    function viewLogDetail(p) {
+      const r = runById(p.id);
+      if (!r) return emptyState('terminal', 'Execução não encontrada', 'O registro solicitado não existe.', linkBtn('Voltar aos logs', '#/admin/logs', { cls: 'btn-primary-solid' }));
+      const d = r.details, s = d.summary, fail = r.status === 'failed';
+      const eventLabel = { due_today: 'Vence hoje', overdue: 'Em atraso' };
+      const rows = d.rentals.length ? '<div class="table-wrap"><table class="saas-table"><caption class="sr-only">Locações tratadas</caption><thead><tr><th scope="col">Ticket</th><th scope="col">Leitor</th><th scope="col">Evento</th><th scope="col">Atraso</th><th scope="col">Multa</th><th scope="col">Notificação</th></tr></thead><tbody>' +
+        d.rentals.map((x) => '<tr><td class="font-mono">' + esc(x.ticketCode) + '</td><td>' + esc((userById(x.userId) || { name: '-' }).name) + '</td><td>' + esc(eventLabel[x.event] || x.event) + '</td><td class="font-mono">' + (x.daysLate ? plural(x.daysLate, 'dia', 'dias') : '-') + (x.markedOverdue ? ' <span class="status-badge badge-atrasado">marcada hoje</span>' : '') + '</td><td class="font-mono">' + (x.fineAmount ? money(Number(x.fineAmount)) + (x.fineCreated ? ' <span class="status-badge badge-info">criada</span>' : '') : '-') + '</td><td>' + (x.notificationSent ? 'Enviada' : 'Já enviada hoje') + '</td></tr>').join('') + '</tbody></table></div>'
+        : '<div style="padding:16px">' + emptyState('inbox', 'Sem detalhamento por locação', fail ? 'A execução falhou antes de registrar as locações tratadas.' : 'Nenhuma locação venceu ou estava em atraso nesta execução.') + '</div>';
+      return crumbs([['Logs do job diário', '#/admin/logs'], [r.id]]) +
+        pageHead(r.id, 'Iniciada em ' + fmtDateTime(r.startedAt) + ' · duração de ' + runSeconds(r) + 's · data de referência ' + fmtDate(d.referenceDate), '<a class="btn-minimal" href="#/admin/logs">' + ico('arrowL', 14) + 'Voltar</a>') +
+        '<div style="margin-bottom:16px">' + (fail ? alertBox('error', 'Execução com falha.', esc(r.error || '') + ' O progresso feito até a falha ficou registrado.') : alertBox('success', 'Execução concluída com sucesso.', esc(runSummary(r)) + '.')) + '</div>' +
+        '<div class="grid-kpi">' + kpi('Locações verificadas', d.rentalsScanned, 'ativas ou atrasadas') + kpi('Atrasos marcados', s.overdueMarked, 'passaram a atrasadas', { cls: s.overdueMarked ? 'warn' : '' }) +
+        kpi('Multas criadas', s.finesCreated, money(MULTA_DIA) + ' por dia de atraso') + kpi('Notificações enviadas', s.notificationsSent, 'vencimento e multa') + '</div>' +
+        '<section class="card-flat flush" aria-labelledby="h-rt" style="margin-bottom:20px"><div class="card-head"><h2 class="section-title" id="h-rt">Locações tratadas</h2></div>' + rows + '</section>' +
+        '<div class="grid-2"><section class="card-flat" aria-labelledby="h-rq"><h2 class="section-title" id="h-rq" style="margin-bottom:10px">Requisição e resposta</h2><dl class="kv"><dt>Requisição</dt><dd class="font-mono">' + esc(r.request.method + ' ' + r.request.path) + '</dd><dt>Status HTTP</dt><dd class="font-mono">' + r.response.statusCode + '</dd><dt>Início</dt><dd class="font-mono">' + fmtDateTime(r.startedAt) + '</dd><dt>Fim</dt><dd class="font-mono">' + fmtDateTime(r.finishedAt) + '</dd></dl></section>' +
+        '<section class="card-flat" aria-labelledby="h-lg"><h2 class="section-title" id="h-lg" style="margin-bottom:10px">' + (fail ? 'Erro registrado' : 'Resposta do processamento') + '</h2><div class="log-box" tabindex="0" role="log" aria-label="Saída do processamento">' +
+        (fail ? '<div class="err">' + esc(r.traceback || r.error).replace(/\n/g, '<br>') + '</div>' : '<div class="ok">' + esc(JSON.stringify(r.response.body)) + '</div>') + '</div></section></div>';
+    }
+
+    /* ---------- 5.10 Leitores (bibliotecário): GET /users?q= e histórico do RF-108 ---------- */
+    function readersFiltered() {
+      const q = norm(ui.f.readers.q);
+      return db.users.filter((u) => u.role === 'leitor' && (!q || norm(u.name).indexOf(q) >= 0 || norm(u.email).indexOf(q) >= 0)).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+    }
+    RESULTS.readers = function () {
+      const list = readersFiltered(), pg = paginate(list, ui.f.readers.page);
+      if (!list.length) return emptyState('users', 'Nenhum leitor encontrado', 'Tente buscar por outra parte do nome ou do e-mail.');
+      return '<div class="table-wrap"><table class="saas-table"><caption class="sr-only">Leitores</caption><thead><tr><th scope="col">Nome</th><th scope="col">E-mail</th><th scope="col">Em aberto</th><th scope="col">Multas pendentes</th><th scope="col" class="text-right">Ações</th></tr></thead><tbody>' +
+        pg.items.map((u) => { const open = db.loans.filter((l) => l.userId === u.id && OPEN.indexOf(l.status) >= 0).length, pf = pendingFines(db.fines.filter((f) => f.userId === u.id));
+          return '<tr><td><div class="row"><div class="user-avatar" aria-hidden="true">' + esc(nameInitials(u.name)) + '</div><b>' + esc(u.name) + '</b></div></td><td>' + esc(u.email) + '</td><td class="font-mono">' + open + '</td><td class="font-mono"' + (pf.length ? ' style="color:var(--destructive);font-weight:600"' : '') + '>' + (pf.length ? money(sumFines(pf)) : '-') + '</td><td class="act"><a class="btn-minimal btn-sm" href="#/leitores/' + u.id + '">Ver histórico</a></td></tr>'; }).join('') + '</tbody></table></div>' + pagerHtml('readers', pg);
+    };
+    function viewReaders() {
+      return pageHead('Leitores', 'Busque um leitor por nome ou e-mail para consultar o histórico de locações e as multas pendentes') +
+        '<section class="card-flat flush"><div class="filter-bar"><div class="form-field search"><label for="rd-q">Buscar leitor</label><div class="input-search-wrap">' + ico('search', 14) + '<input id="rd-q" class="input-minimal" type="search" placeholder="Nome ou e-mail" value="' + esc(ui.f.readers.q) + '" oninput="setF(\'readers\',\'q\',this.value)" autocomplete="off"></div></div></div>' +
+        '<div id="res-readers" aria-live="polite">' + RESULTS.readers() + '</div></section>';
+    }
+    function viewReaderDetail(p) {
+      const u = userById(p.id);
+      if (!u || u.role !== 'leitor') return emptyState('users', 'Leitor não encontrado', 'O leitor solicitado não existe.', linkBtn('Voltar aos leitores', '#/leitores', { cls: 'btn-primary-solid' }));
+      const loans = db.loans.filter((l) => l.userId === u.id).sort((a, b) => ((a.reservedAt + a.id) < (b.reservedAt + b.id) ? 1 : -1));
+      const pf = pendingFines(db.fines.filter((f) => f.userId === u.id));
+      const open = loans.filter((l) => OPEN.indexOf(l.status) >= 0);
+      const loanRows = loans.length ? '<div class="table-wrap"><table class="saas-table"><caption class="sr-only">Histórico de locações</caption><thead><tr><th scope="col">Livro</th><th scope="col">Ticket</th><th scope="col">Status</th><th scope="col">Datas importantes</th><th scope="col" class="text-right">Ações</th></tr></thead><tbody>' +
+        loans.map((l) => { const b = loanBook(l); return '<tr class="' + (l.status === 'atrasada' ? 'row-danger' : '') + '"><td><div class="cell-book">' + cover(b, 'sm') + '<div><div style="font-weight:600">' + esc(b.title) + '</div><div class="cell-sub">' + esc(b.author) + '</div></div></div></td><td class="font-mono">' + l.ticket + '</td><td>' + loanBadge(l.status) + '</td><td>' + loanDates(l) + '</td><td class="act">' + loanActions(l, true) + '</td></tr>'; }).join('') + '</tbody></table></div>'
+        : emptyState('clock', 'Sem locações', 'Este leitor ainda não fez reservas.');
+      const fineRows = pf.length ? pf.map((f) => '<div class="notif"><div class="notif-icon multa">' + ico('dollar', 16) + '</div><div class="grow"><div class="notif-title">' + money(f.amount) + ' · ' + esc(fineTitle(f)) + '</div><div class="notif-text">' + plural(f.days, 'dia', 'dias') + ' de atraso · gerada em ' + fmtDate(f.createdAt) + '</div></div><button type="button" class="btn-minimal btn-sm" onclick="askPayFine(\'' + f.id + '\')">Registrar quitação</button></div>').join('')
+        : emptyState('checkCircle', 'Sem multas pendentes', 'Este leitor não tem multas em aberto.');
+      return crumbs([['Leitores', '#/leitores'], [u.name]]) +
+        pageHead(u.name, esc(u.email)) +
+        '<div class="grid-kpi">' + kpi('Locações e reservas', loans.length, 'no histórico') + kpi('Em aberto', open.length, plural(open.filter((l) => l.status === 'atrasada').length, 'atrasada', 'atrasadas'), { cls: open.some((l) => l.status === 'atrasada') ? 'warn' : '' }) +
+        kpi('Multas pendentes', money(sumFines(pf)), plural(pf.length, 'multa', 'multas'), { cls: pf.length ? 'danger' : 'ok' }) + '</div>' +
+        '<div class="grid-main-side"><section class="card-flat flush" aria-labelledby="h-hist"><div class="card-head"><h2 class="section-title" id="h-hist">Histórico de locações e reservas</h2></div>' + loanRows + '</section>' +
+        '<section class="card-flat flush" aria-labelledby="h-mul"><div class="card-head"><h2 class="section-title" id="h-mul">Multas pendentes</h2></div>' + fineRows + '</section></div>';
+    }
+
+    /* ---------- 6. Rotas e inicialização ---------- */
+    const ROUTES = [
+      { p: '/login', public: true, title: 'Entrar', render: viewLogin, after: focusEmail },
+      { p: '/cadastro', public: true, title: 'Criar conta', render: viewRegister, after: focusEmail },
+      { p: '/dashboard', title: 'Dashboard', render: viewDashboard },
+      { p: '/acervo', title: 'Catálogo', render: viewCatalog },
+      { p: '/acervo/novo', role: 'bibliotecario', title: 'Cadastrar livro', render: () => viewBookForm({}) },
+      { p: '/acervo/:id/editar', role: 'bibliotecario', title: 'Editar livro', render: viewBookForm, nav: '/acervo' },
+      { p: '/acervo/:id/avaliar', role: 'leitor', title: 'Avaliar livro', render: viewReviewForm, nav: '/avaliacoes' },
+      { p: '/acervo/:id', title: (p) => (bookById(p.id) ? bookById(p.id).title : 'Livro'), render: viewBookDetail, nav: '/acervo' },
+      { p: '/locacoes', title: 'Locações', render: viewLoans },
+      { p: '/circulacao', role: 'bibliotecario', title: 'Retirada e devolução', render: viewCirculation },
+      { p: '/multas', title: 'Multas', render: viewFines },
+      { p: '/leitores', role: 'bibliotecario', title: 'Leitores', render: viewReaders },
+      { p: '/leitores/:id', role: 'bibliotecario', title: 'Histórico do leitor', render: viewReaderDetail, nav: '/leitores' },
+      { p: '/avaliacoes', role: 'leitor', title: 'Minhas avaliações', render: viewMyReviews },
+      { p: '/favoritos', role: 'leitor', title: 'Favoritos', render: viewFavorites },
+      { p: '/desejos', role: 'leitor', title: 'Lista de desejos', render: viewWishlist },
+      { p: '/notificacoes', role: 'leitor', title: 'Notificações', render: viewNotifications },
+      { p: '/admin/logs', role: 'bibliotecario', title: 'Logs do job diário', render: viewLogs },
+      { p: '/admin/logs/:id', role: 'bibliotecario', title: 'Execução do job', render: viewLogDetail, nav: '/admin/logs' }
+    ];
+
+    function init() {
+      db = loadDb();
+      sessionUserId = loadSession();
+      if (sessionUserId && !userById(sessionUserId)) sessionUserId = null;
+      if (!location.hash || location.hash === '#') location.hash = sessionUserId ? '#/dashboard' : '#/login';
+      render();
+    }
+    init();
+  </script>
+</body>
+</html>

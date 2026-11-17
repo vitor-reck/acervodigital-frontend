@@ -1,0 +1,25 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://acervo-digital-api.onrender.com}
+    ports:
+      - "8080:80"
+
+  dev:
+    image: node:24-alpine
+    profiles: [dev]
+    working_dir: /app
+    command: sh -c "npm ci && npm run dev"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-https://acervo-digital-api.onrender.com}
+      VITE_POLLING: "true"
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+
+volumes:
+  node_modules:
